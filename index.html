@@ -331,35 +331,86 @@
                     interactive: false
                 });
             }
-            // Clear previous labels if any
+            // Clear previous labels
             townLabels.clearLayers();
             
             layer_48_1.eachLayer(function(layer) {
                 if (layer.feature && layer.feature.geometry) {
-                    console.log("Processing feature:", layer.feature.properties.TOWN);
-            
-                    // Flatten geometry to avoid turf errors on MultiPolygons
-                    const flattened = turf.flatten(layer.feature.geometry ? {type:"Feature", geometry: layer.feature.geometry} : layer.feature);
-            
-                    // Take first polygon to get centroid for label
-                    let centroid = null;
-                    for (const f of flattened.features) {
-                        if (f.geometry.type === 'Polygon') {
-                            centroid = turf.centroid(f).geometry.coordinates;
-                            break;
-                        }
-                    }
-                    if (!centroid) {
-                        console.warn("No polygon found for label on", layer.feature.properties.TOWN);
-                        return;
-                    }
-            
-                    const latlng = L.latLng(centroid[1], centroid[0]);
-            
                     const townName = layer.feature.properties.TOWN || "Unknown";
             
-                    // Create label marker at centroid with simple div icon
-                    const labelMarker = L.marker(latlng, {
+                    // Use turf.pointOnFeature to get a point inside the polygon (works better for odd shapes)
+                    const pointOnFeature = turf.pointOnFeature(layer.feature);
+            
+                    let labelLatLng = L.latLng(pointOnFeature.geometry.coordinates[1], pointOnFeature.geometry.coordinates[0]);
+            
+                    // Measure label size helper (same as your style)
+                    function measureLabelSize(text) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.style.position = 'absolute';
+                        tempDiv.style.visibility = 'hidden';
+                        tempDiv.style.fontFamily = "'Open Sans', sans-serif";
+                        tempDiv.style.fontWeight = '700';
+                        tempDiv.style.fontSize = '12px';
+                        tempDiv.style.whiteSpace = 'nowrap';
+                        tempDiv.style.padding = '2px 6px';
+                        tempDiv.innerText = text;
+                        document.body.appendChild(tempDiv);
+                        const width = tempDiv.offsetWidth;
+                        const height = tempDiv.offsetHeight;
+                        document.body.removeChild(tempDiv);
+                        return { width, height };
+                    }
+            
+                    // Convert pixel offset to latlng relative to base latlng
+                    function getOffsetLatLng(baseLatLng, dxPixels, dyPixels) {
+                        const point = map.latLngToContainerPoint(baseLatLng);
+                        const offsetPoint = L.point(point.x + dxPixels, point.y + dyPixels);
+                        return map.containerPointToLatLng(offsetPoint);
+                    }
+            
+                    // Check if label fits inside polygon (assuming label bottom center anchor)
+                    function labelFitsInsidePolygon(feature, labelLatLng, labelWidth, labelHeight) {
+                        const topLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, -labelHeight);
+                        const topRight = getOffsetLatLng(labelLatLng, labelWidth / 2, -labelHeight);
+                        const bottomRight = getOffsetLatLng(labelLatLng, labelWidth / 2, 0);
+                        const bottomLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, 0);
+            
+                        const labelPolygon = turf.polygon([[
+                            [topLeft.lng, topLeft.lat],
+                            [topRight.lng, topRight.lat],
+                            [bottomRight.lng, bottomRight.lat],
+                            [bottomLeft.lng, bottomLeft.lat],
+                            [topLeft.lng, topLeft.lat]
+                        ]]);
+            
+                        return turf.booleanContains(turf.feature(feature.geometry), labelPolygon);
+                    }
+            
+                    const { width: labelWidth, height: labelHeight } = measureLabelSize(townName);
+            
+                    let found = false;
+            
+                    // If label does not fit, try to shift it around in a grid pattern (max 40 pixels)
+                    if (!labelFitsInsidePolygon(layer.feature, labelLatLng, labelWidth, labelHeight)) {
+                        const maxShift = 40;
+                        outerLoop:
+                        for (let dx = -maxShift; dx <= maxShift; dx += 5) {
+                            for (let dy = -maxShift; dy <= maxShift; dy += 5) {
+                                const testLatLng = getOffsetLatLng(labelLatLng, dx, dy);
+                                if (labelFitsInsidePolygon(layer.feature, testLatLng, labelWidth, labelHeight)) {
+                                    labelLatLng = testLatLng;
+                                    found = true;
+                                    break outerLoop;
+                                }
+                            }
+                        }
+                        if (!found) {
+                            console.warn(`Label for ${townName} doesn't fully fit inside polygon, using pointOnFeature.`);
+                        }
+                    }
+            
+                    // Create and add label marker at calculated position
+                    const labelMarker = L.marker(labelLatLng, {
                         icon: L.divIcon({
                             className: 'town-label',
                             html: `<div>${townName}</div>`,
@@ -367,10 +418,7 @@
                         }),
                         interactive: false
                     });
-            
                     townLabels.addLayer(labelMarker);
-            
-                    console.log(`Label added for ${townName} at centroid`);
                 }
             });
 
