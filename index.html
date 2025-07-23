@@ -289,7 +289,7 @@
 	    ]]);
 	
 	    // Use turf.feature to wrap geometry if needed
-	    return turf.booleanContains(feature, labelPolygon);
+		return turf.booleanContains(turf.feature(feature.geometry), labelPolygon);
 	}
 	
 	// Create label marker, adjust position to fit inside polygon if needed
