@@ -342,7 +342,6 @@
             
                     const { width: labelWidth, height: labelHeight } = measureLabelSize(townName);
             
-                    // Helper functions as you have them
                     function getOffsetLatLng(baseLatLng, dxPixels, dyPixels) {
                         const point = map.latLngToContainerPoint(baseLatLng);
                         const offsetPoint = L.point(point.x + dxPixels, point.y + dyPixels);
@@ -365,22 +364,17 @@
                         return turf.booleanContains(turf.feature(feature.geometry), labelPolygon);
                     }
             
-                    // Attempt to place label with small shifts (optional)
-                    const maxShift = 40;
                     let fits = false;
-                    outerLoop:
-                    for (let dx = -maxShift; dx <= maxShift; dx += 5) {
-                        for (let dy = -maxShift; dy <= maxShift; dy += 5) {
-                            const testLatLng = getOffsetLatLng(labelLatLng, dx, dy);
-                            if (labelFitsInsidePolygon(layer.feature, testLatLng, labelWidth, labelHeight)) {
-                                labelLatLng = testLatLng;
-                                fits = true;
-                                break outerLoop;
-                            }
+                    const maxShift = 40;  // max pixels to shift left
+                    for (let dx = 0; dx >= -maxShift; dx -= 2) {  // shift left by 2 pixels each iteration
+                        const testLatLng = getOffsetLatLng(labelLatLng, dx, 0);
+                        if (labelFitsInsidePolygon(layer.feature, testLatLng, labelWidth, labelHeight)) {
+                            labelLatLng = testLatLng;
+                            fits = true;
+                            break;
                         }
                     }
             
-                    // ONLY add the label if it fits inside polygon
                     if (fits) {
                         const labelMarker = L.marker(labelLatLng, {
                             icon: L.divIcon({
@@ -392,7 +386,7 @@
                         });
                         townLabels.addLayer(labelMarker);
                     } else {
-                        console.warn(`Label for "${townName}" does not fit inside polygon, label omitted.`);
+                        console.warn(`Label for "${townName}" doesn't fit after leftward shift; label omitted.`);
                     }
                 }
             });
