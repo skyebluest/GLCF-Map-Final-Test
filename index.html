@@ -124,12 +124,13 @@
         document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
         document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
         var bounds_group = new L.featureGroup([]);
-        function setBounds() {
-            if (bounds_group.getLayers().length) {
-                map.fitBounds(bounds_group.getBounds());
-            }
-            map.setMaxBounds(map.getBounds());
-        }
+	function setBounds() {
+	  if (bounds_group.getLayers().length) {
+	    const b = bounds_group.getBounds();
+	    map.fitBounds(b);
+	    map.setMaxBounds(b.pad(0.1)); // pad to give a little margin
+	  }
+	}
         map.createPane('pane_XYZLayer_0');
         map.getPane('pane_XYZLayer_0').style.zIndex = 400;
         var layer_XYZLayer_0 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -251,7 +252,14 @@
         map.addLayer(layer_48_1);
 	layer_48_1.eachLayer(function(layer) {
 	  if (layer.feature) {
-	    const label = createFittedLabel(layer.feature);
+	    console.log("Feature found:", layer.feature.properties.TOWN);
+	    const label = L.marker(layer.getBounds().getCenter(), {
+	      icon: L.divIcon({
+	        className: 'town-label',
+	        html: `<div>${layer.feature.properties.TOWN}</div>`
+	      }),
+	      interactive: false
+	    });
 	    townLabels.addLayer(label);
 	  }
 	});
