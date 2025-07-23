@@ -251,7 +251,7 @@
         bounds_group.addLayer(layer_48_1);
         map.addLayer(layer_48_1);
         setBounds();
-        var i = 0;
+        //* var i = 0;
         layer_48_1.eachLayer(function(layer) {
             var context = {
                 feature: layer.feature,
@@ -273,7 +273,7 @@
         });
         map.on("layerremove", function(){
             resetLabels([layer_48_1]);
-        });
+        }); *//
         </script>
     </body>
 </html>
