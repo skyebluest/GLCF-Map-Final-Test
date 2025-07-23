@@ -21,10 +21,15 @@
             padding: 0;
             margin: 0;
         }
+	.town-label {
+	    background: none !important;
+	    box-shadow: none !important;
+	    border: none !important;
+	}
 	.town-label div {
-	    background: none !important; /* added */
+	    background: none !important;
 	    padding: 2px 6px;
-	    border-radius: 0px; /* optional if you want no rounding */
+	    border-radius: 0;
 	    text-align: center;
 	    font-family: 'Open Sans', sans-serif;
 	    font-weight: 700;
@@ -244,12 +249,7 @@
         map.addLayer(layer_48_1);
 	json_48_1.features.forEach(feature => {
 	    if (feature.geometry) {
-	        let point = turf.centerOfMass(feature);
-	
-	        // Check if point is within the polygon
-	        if (!turf.booleanPointInPolygon(point, feature)) {
-	            point = turf.centroid(feature); // fallback
-	        }
+	        let point = turf.pointOnFeature(feature);  // More reliable point inside polygon
 	
 	        const coords = point.geometry.coordinates;
 	        const townName = feature.properties.TOWN || 'Unknown';
