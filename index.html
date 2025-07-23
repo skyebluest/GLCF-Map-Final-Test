@@ -143,7 +143,6 @@
 	    if (feature.geometry) {
 		const centerPoint = turf.pointOnFeature(feature);
 		const coords = centerPoint.geometry.coordinates;
-		const coords = centroid.geometry.coordinates;
 		const townName = feature.properties.TOWN || 'Unknown';
 	
 		L.marker([coords[1], coords[0]], {
