@@ -252,17 +252,7 @@
 	const townLabels = L.layerGroup().addTo(map);
 	layer_48_1.eachLayer(function(layer) {
 	  if (layer.feature) {
-	    const townName = layer.feature.properties.TOWN || 'Unknown';
-	    const center = layer.getBounds().getCenter(); // center latlng of polygon bbox
-	    console.log(`Adding label for: ${townName} at ${center.lat},${center.lng}`);
-	
-	    const label = L.marker(center, {
-	      icon: L.divIcon({
-	        className: 'town-label',
-	        html: `<div>${townName}</div>`
-	      }),
-	      interactive: false
-	    });
+	    const label = createFittedLabel(layer.feature);
 	    townLabels.addLayer(label);
 	  }
 	});
