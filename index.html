@@ -331,13 +331,46 @@
                     interactive: false
                 });
             }
-
-            // Clear and add labels for each feature
+            // Clear previous labels if any
             townLabels.clearLayers();
+            
             layer_48_1.eachLayer(function(layer) {
-                if (layer.feature) {
-                    const label = createFittedLabel(layer.feature);
-                    townLabels.addLayer(label);
+                if (layer.feature && layer.feature.geometry) {
+                    console.log("Processing feature:", layer.feature.properties.TOWN);
+            
+                    // Flatten geometry to avoid turf errors on MultiPolygons
+                    const flattened = turf.flatten(layer.feature.geometry ? {type:"Feature", geometry: layer.feature.geometry} : layer.feature);
+            
+                    // Take first polygon to get centroid for label
+                    let centroid = null;
+                    for (const f of flattened.features) {
+                        if (f.geometry.type === 'Polygon') {
+                            centroid = turf.centroid(f).geometry.coordinates;
+                            break;
+                        }
+                    }
+                    if (!centroid) {
+                        console.warn("No polygon found for label on", layer.feature.properties.TOWN);
+                        return;
+                    }
+            
+                    const latlng = L.latLng(centroid[1], centroid[0]);
+            
+                    const townName = layer.feature.properties.TOWN || "Unknown";
+            
+                    // Create label marker at centroid with simple div icon
+                    const labelMarker = L.marker(latlng, {
+                        icon: L.divIcon({
+                            className: 'town-label',
+                            html: `<div>${townName}</div>`,
+                            iconSize: null
+                        }),
+                        interactive: false
+                    });
+            
+                    townLabels.addLayer(labelMarker);
+            
+                    console.log(`Label added for ${townName} at centroid`);
                 }
             });
 
