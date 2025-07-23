@@ -137,22 +137,10 @@
         });
         layer_XYZLayer_0;
         map.addLayer(layer_XYZLayer_0);
-	
+	const townLabels = L.layerGroup().addTo(map);
+
 	// just added
 	function pop_48_1(feature, layer) {
-	    if (feature.geometry) {
-		const centerPoint = turf.pointOnFeature(feature);
-		const coords = centerPoint.geometry.coordinates;
-		const townName = feature.properties.TOWN || 'Unknown';
-	
-		L.marker([coords[1], coords[0]], {
-		    icon: L.divIcon({
-			className: 'town-label',
-			html: `<div>${townName}</div>`
-		    }),
-		    interactive: false
-		}).addTo(map);
-	    }
 	            var popupContent = '<table>\
                     <tr>\
                         <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? autolinker.link(String(feature.properties['OBJECTID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
@@ -254,6 +242,24 @@
         });
         bounds_group.addLayer(layer_48_1);
         map.addLayer(layer_48_1);
+	json_48_1.features.forEach(feature => {
+	    if (feature.geometry) {
+	        const point = turf.pointOnFeature(feature);
+	        const coords = point.geometry.coordinates;
+	        const townName = feature.properties.TOWN || 'Unknown';
+	
+	        const label = L.marker([coords[1], coords[0]], {
+	            icon: L.divIcon({
+	                className: 'town-label',
+	                html: `<div>${townName}</div>`
+	            }),
+	            interactive: false
+	        });
+	
+	        townLabels.addLayer(label);
+	    }
+	});
+
         setBounds();
         </script>
     </body>
