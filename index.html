@@ -59,7 +59,8 @@
         <script src="js/leaflet-measure.js"></script>
         <script src="data/48_1.js"></script>
         <script>
-        var highlightLayer;
+        window.onload = function() {
+	var highlightLayer;
         function highlightFeature(e) {
             highlightLayer = e.target;
 
@@ -345,6 +346,8 @@
 	console.log(layer_48_1.getBounds());
 
         setBounds();
+		};
+
         </script>
     </body>
 </html>
