@@ -1,208 +1,162 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width" />
-  <title>GLCF Map with Polygon Labels</title>
-
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
-  />
-  <!-- Open Sans font -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap"
-    rel="stylesheet"
-  />
-  <style>
-    html, body, #map {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: 'Open Sans', sans-serif;
-    }
-    .town-label {
-      background: none !important;
-      box-shadow: none !important;
-      border: none !important;
-      pointer-events: none;
-    }
-    .town-label div {
-      background: none !important;
-      padding: 2px 6px;
-      border-radius: 0;
-      text-align: center;
-      font-weight: 700;
-      font-size: 12px;
-      color: #e7e2d3;
-      white-space: nowrap;
-      user-select: none;
-      pointer-events: none;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Full GLCF Map with Label Fit</title>
+<link rel="stylesheet" href="css/leaflet.css" />
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap" rel="stylesheet" />
+<style>
+  html, body, #map { height: 100%; margin: 0; padding: 0; }
+  .town-label {
+    background: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    pointer-events: none;
+  }
+  .town-label div {
+    padding: 2px 6px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: #E7E2D3;
+    white-space: nowrap;
+    background: rgba(0,0,0,0.6);
+    border-radius: 3px;
+  }
+</style>
 </head>
 <body>
-  <div id="map"></div>
 
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin=""
-  ></script>
-  <!-- Turf.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+<div id="map"></div>
 
-  <!-- Your GeoJSON data file -->
-  <script src="data/48_1.js"></script>
+<script src="js/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+<script src="data/48_1.js"></script> <!-- This should define var json_48_1 -->
 
-  <script>
-    window.onload = function () {
-      if (!window.json_48_1) {
-        console.error("GeoJSON data 'json_48_1' not found! Make sure 'data/48_1.js' is loaded.");
-        return;
+<script>
+window.onload = function() {
+  const map = L.map('map', {
+    center: [42.5748, -71.5146],
+    zoom: 11,
+    zoomControl: false,
+    dragging: false,
+    scrollWheelZoom: false,
+    doubleClickZoom: false,
+    boxZoom: false,
+    keyboard: false,
+    tap: false,
+  });
+  map.setMaxBounds(map.getBounds());
+
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    minZoom: 11,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Add polygons layer
+  const polygonLayer = L.geoJSON(json_48_1, {
+    style: {
+      color: 'rgba(40,86,156,1)',
+      weight: 1,
+      fillOpacity: 1
+    }
+  }).addTo(map);
+
+  // Label group
+  const labelLayer = L.layerGroup().addTo(map);
+
+  function measureLabelSize(text) {
+    const tempDiv = document.createElement('div');
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.visibility = 'hidden';
+    tempDiv.style.fontFamily = "'Open Sans', sans-serif";
+    tempDiv.style.fontWeight = '700';
+    tempDiv.style.fontSize = '12px';
+    tempDiv.style.whiteSpace = 'nowrap';
+    tempDiv.style.padding = '2px 6px';
+    tempDiv.innerText = text;
+    document.body.appendChild(tempDiv);
+    const width = tempDiv.offsetWidth;
+    const height = tempDiv.offsetHeight;
+    document.body.removeChild(tempDiv);
+    return { width, height };
+  }
+
+  function getOffsetLatLng(baseLatLng, dxPixels, dyPixels) {
+    const point = map.latLngToContainerPoint(baseLatLng);
+    const offsetPoint = L.point(point.x + dxPixels, point.y + dyPixels);
+    return map.containerPointToLatLng(offsetPoint);
+  }
+
+  function labelFitsInsidePolygon(feature, labelLatLng, labelWidth, labelHeight) {
+    const topLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, -labelHeight);
+    const topRight = getOffsetLatLng(labelLatLng, labelWidth / 2, -labelHeight);
+    const bottomRight = getOffsetLatLng(labelLatLng, labelWidth / 2, 0);
+    const bottomLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, 0);
+
+    const labelPolygon = turf.polygon([[ 
+      [topLeft.lng, topLeft.lat],
+      [topRight.lng, topRight.lat],
+      [bottomRight.lng, bottomRight.lat],
+      [bottomLeft.lng, bottomLeft.lat],
+      [topLeft.lng, topLeft.lat]
+    ]]);
+
+    const flattened = turf.flatten(feature);
+
+    for (const polyFeature of flattened.features) {
+      if (turf.booleanContains(polyFeature, labelPolygon)) {
+        return true;
       }
+    }
+    return false;
+  }
 
-      // Initialize map
-      var map = L.map("map", {
-        center: [42.5748, -71.5146],
-        zoom: 11,
-        zoomControl: true,
-        scrollWheelZoom: false,
+  function addLabelWithShift(feature) {
+    const townName = feature.properties.TOWN || 'Unknown';
+    const pointOnFeature = turf.pointOnFeature(feature);
+    let labelLatLng = L.latLng(pointOnFeature.geometry.coordinates[1], pointOnFeature.geometry.coordinates[0]);
+    const { width: labelWidth, height: labelHeight } = measureLabelSize(townName);
+
+    let fits = false;
+    const maxShift = 100; // pixels max shift left
+    const step = 3; // pixel step size
+
+    for (let dx = 0; dx >= -maxShift; dx -= step) {
+      const testLatLng = getOffsetLatLng(labelLatLng, dx, 0);
+      if (labelFitsInsidePolygon(feature, testLatLng, labelWidth, labelHeight)) {
+        labelLatLng = testLatLng;
+        fits = true;
+        break;
+      }
+    }
+
+    if (fits) {
+      const labelMarker = L.marker(labelLatLng, {
+        icon: L.divIcon({
+          className: 'town-label',
+          html: `<div>${townName}</div>`,
+          iconSize: null
+        }),
+        interactive: false
       });
+      labelLayer.addLayer(labelMarker);
+      console.log(`Label added for "${townName}"`);
+    } else {
+      console.warn(`Label for "${townName}" omitted; no fitting position found`);
+    }
+  }
 
-      // Add OpenStreetMap tile layer
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
+  // Clear existing labels
+  labelLayer.clearLayers();
 
-      // Style for polygons
-      function style(feature) {
-        return {
-          color: "rgba(35,35,35,1.0)",
-          weight: 1,
-          fillColor: "rgba(40,86,156,1.0)",
-          fillOpacity: 1,
-        };
-      }
+  // Add labels for all polygons
+  json_48_1.features.forEach(addLabelWithShift);
 
-      // Popup content
-      function onEachFeature(feature, layer) {
-        let props = feature.properties;
-        let content = `<table>
-          <tr><th>TOWN</th><td>${props.TOWN || ""}</td></tr>
-          <tr><th>2022 Total</th><td>${props["2022 Total"] || ""}</td></tr>
-        </table>`;
-        layer.bindPopup(content);
-      }
+};
+</script>
 
-      // Add GeoJSON layer
-      var layer_48_1 = L.geoJSON(window.json_48_1, {
-        style: style,
-        onEachFeature: onEachFeature,
-      }).addTo(map);
-
-      // Label layer group
-      var townLabels = L.layerGroup().addTo(map);
-
-      function measureLabelSize(text) {
-        const tempDiv = document.createElement("div");
-        tempDiv.style.position = "absolute";
-        tempDiv.style.visibility = "hidden";
-        tempDiv.style.fontFamily = "'Open Sans', sans-serif";
-        tempDiv.style.fontWeight = "700";
-        tempDiv.style.fontSize = "12px";
-        tempDiv.style.whiteSpace = "nowrap";
-        tempDiv.style.padding = "2px 6px";
-        tempDiv.innerText = text;
-        document.body.appendChild(tempDiv);
-        const width = tempDiv.offsetWidth;
-        const height = tempDiv.offsetHeight;
-        document.body.removeChild(tempDiv);
-        return { width, height };
-      }
-
-      function getOffsetLatLng(baseLatLng, dxPixels, dyPixels) {
-        const point = map.latLngToContainerPoint(baseLatLng);
-        const offsetPoint = L.point(point.x + dxPixels, point.y + dyPixels);
-        return map.containerPointToLatLng(offsetPoint);
-      }
-
-      function labelFitsInsidePolygon(feature, labelLatLng, labelWidth, labelHeight) {
-        const topLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, -labelHeight);
-        const topRight = getOffsetLatLng(labelLatLng, labelWidth / 2, -labelHeight);
-        const bottomRight = getOffsetLatLng(labelLatLng, labelWidth / 2, 0);
-        const bottomLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, 0);
-
-        const labelPolygon = turf.polygon([
-          [
-            [topLeft.lng, topLeft.lat],
-            [topRight.lng, topRight.lat],
-            [bottomRight.lng, bottomRight.lat],
-            [bottomLeft.lng, bottomLeft.lat],
-            [topLeft.lng, topLeft.lat],
-          ],
-        ]);
-
-        const flattened = turf.flatten(feature);
-
-        for (const polyFeature of flattened.features) {
-          if (turf.booleanContains(polyFeature, labelPolygon)) {
-            return true;
-          }
-        }
-        return false;
-      }
-
-      townLabels.clearLayers();
-
-      layer_48_1.eachLayer(function (layer) {
-        const feature = layer.feature;
-        if (!feature || !feature.geometry) return;
-
-        const townName = feature.properties.TOWN || "Unknown";
-        const pointOnFeature = turf.pointOnFeature(feature);
-        let labelLatLng = L.latLng(
-          pointOnFeature.geometry.coordinates[1],
-          pointOnFeature.geometry.coordinates[0]
-        );
-
-        const { width: labelWidth, height: labelHeight } = measureLabelSize(townName);
-
-        let fits = false;
-        const maxShift = 40; // max pixels to shift left
-        for (let dx = 0; dx >= -maxShift; dx -= 2) {
-          const testLatLng = getOffsetLatLng(labelLatLng, dx, 0);
-          if (labelFitsInsidePolygon(feature, testLatLng, labelWidth, labelHeight)) {
-            labelLatLng = testLatLng;
-            fits = true;
-            break;
-          }
-        }
-
-        if (fits) {
-          const labelMarker = L.marker(labelLatLng, {
-            icon: L.divIcon({
-              className: "town-label",
-              html: `<div>${townName}</div>`,
-              iconSize: null,
-            }),
-            interactive: false,
-          });
-          townLabels.addLayer(labelMarker);
-          console.log(`Label added for ${townName}`);
-        } else {
-          console.warn(`Label for "${townName}" doesn't fit after leftward shift; omitted.`);
-        }
-      });
-
-      // Fit map to layer bounds with padding
-      map.fitBounds(layer_48_1.getBounds().pad(0.1));
-    };
-  </script>
 </body>
 </html>
