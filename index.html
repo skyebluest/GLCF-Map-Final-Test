@@ -248,6 +248,13 @@
         });
         bounds_group.addLayer(layer_48_1);
         map.addLayer(layer_48_1);
+	layer_48_1.eachLayer(function(layer) {
+	  if (layer.feature) {
+	    const label = createFittedLabel(layer.feature);
+	    townLabels.addLayer(label);
+	  }
+	});
+
 	// Helper function: measure label size dynamically by creating temporary div
 	function measureLabelSize(text) {
 	    const tempDiv = document.createElement('div');
@@ -321,7 +328,7 @@
 	            console.warn(`Label for ${townName} doesn't fit inside polygon — using center`);
 	        }
 	    }
-	
+	console.log(`Label added for ${feature.properties.TOWN}`);
 	    return L.marker(labelLatLng, {
 	        icon: L.divIcon({
 	            className: 'town-label',
@@ -335,12 +342,6 @@
 	// Clear existing labels if needed
 	townLabels.clearLayers();
 	
-	map.whenReady(() => {
-	  json_48_1.features.forEach(feature => {
-	    const label = createFittedLabel(feature);
-	    townLabels.addLayer(label);
-	  });
-	});
 	console.log(layer_48_1.getBounds());
 
         setBounds();
