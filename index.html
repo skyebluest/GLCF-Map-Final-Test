@@ -306,7 +306,7 @@
                 let found = false;
 
                 if (!labelFitsInsidePolygon(feature, labelLatLng, labelWidth, labelHeight)) {
-                    const maxShift = 40;
+                    const maxShift = 1000;
                     outerLoop:
                     for (let dx = -maxShift; dx <= maxShift; dx += 5) {
                         for (let dy = -maxShift; dy <= maxShift; dy += 5) {
