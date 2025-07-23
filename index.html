@@ -144,7 +144,6 @@
         });
         layer_XYZLayer_0;
         map.addLayer(layer_XYZLayer_0);
-	const townLabels = L.layerGroup().addTo(map);
 
 		
 	// just added
@@ -250,13 +249,17 @@
         });
         bounds_group.addLayer(layer_48_1);
         map.addLayer(layer_48_1);
+	const townLabels = L.layerGroup().addTo(map);
 	layer_48_1.eachLayer(function(layer) {
 	  if (layer.feature) {
-	    console.log("Feature found:", layer.feature.properties.TOWN);
-	    const label = L.marker(layer.getBounds().getCenter(), {
+	    const townName = layer.feature.properties.TOWN || 'Unknown';
+	    const center = layer.getBounds().getCenter(); // center latlng of polygon bbox
+	    console.log(`Adding label for: ${townName} at ${center.lat},${center.lng}`);
+	
+	    const label = L.marker(center, {
 	      icon: L.divIcon({
 	        className: 'town-label',
-	        html: `<div>${layer.feature.properties.TOWN}</div>`
+	        html: `<div>${townName}</div>`
 	      }),
 	      interactive: false
 	    });
