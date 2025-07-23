@@ -296,24 +296,29 @@
 	// Create label marker, adjust position to fit inside polygon if needed
 	function createFittedLabel(feature) {
 	    const townName = feature.properties.TOWN || 'Unknown';
-	
-	    // Use turf.pointOnFeature on feature.geometry, or on entire feature
-	    let labelPoint = turf.pointOnFeature(feature).geometry.coordinates;
+	    const labelPoint = turf.pointOnFeature(feature).geometry.coordinates;
 	    let labelLatLng = L.latLng(labelPoint[1], labelPoint[0]);
 	
 	    const { width: labelWidth, height: labelHeight } = measureLabelSize(townName);
 	
+	    let found = false;
+	
 	    if (!labelFitsInsidePolygon(feature, labelLatLng, labelWidth, labelHeight)) {
-	        const maxShift = 20;
+	        const maxShift = 40; // increase shift radius
 	        outerLoop:
 	        for (let dx = -maxShift; dx <= maxShift; dx += 5) {
 	            for (let dy = -maxShift; dy <= maxShift; dy += 5) {
 	                const testLatLng = getOffsetLatLng(labelLatLng, dx, dy);
 	                if (labelFitsInsidePolygon(feature, testLatLng, labelWidth, labelHeight)) {
 	                    labelLatLng = testLatLng;
+	                    found = true;
 	                    break outerLoop;
 	                }
 	            }
+	        }
+	
+	        if (!found) {
+	            console.warn(`Label for ${townName} doesn't fit inside polygon — using center`);
 	        }
 	    }
 	
@@ -325,6 +330,7 @@
 	        interactive: false
 	    });
 	}
+
 	
 	// Clear existing labels if needed
 	townLabels.clearLayers();
