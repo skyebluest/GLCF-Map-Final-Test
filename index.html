@@ -1,432 +1,348 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <link rel="stylesheet" href="css/leaflet.css" />
-  <!-- <link rel="stylesheet" href="css/L.Control.Layers.Tree.css"> -->
-  <link rel="stylesheet" href="css/qgis2web.css" />
-  <link rel="stylesheet" href="css/fontawesome-all.min.css" />
-  <link rel="stylesheet" href="css/leaflet.photon.css" />
-  <link rel="stylesheet" href="css/leaflet-measure.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap" rel="stylesheet" />
-  <style>
-    html,
-    body,
-    #map {
-      width: 100%;
-      height: 100%;
-      padding: 0;
-      margin: 0;
-    }
-    .town-label {
-      background: none !important;
-      box-shadow: none !important;
-      border: none !important;
-    }
-    .town-label div {
-      background: none !important;
-      padding: 2px 6px;
-      border-radius: 0;
-      text-align: center;
-      font-family: 'Open Sans', sans-serif;
-      font-weight: 700;
-      font-size: 12px;
-      color: #e7e2d3;
-      white-space: nowrap;
-      pointer-events: none;
-    }
-  </style>
-  <title></title>
-</head>
-<body>
-  <div id="map"></div>
-  <script src="js/qgis2web_expressions.js"></script>
-  <script src="js/leaflet.js"></script>
-  <script src="js/L.Control.Layers.Tree.min.js"></script>
-  <script src="js/leaflet.rotatedMarker.js"></script>
-  <script src="js/leaflet.pattern.js"></script>
-  <script src="js/leaflet-hash.js"></script>
-  <script src="js/Autolinker.min.js"></script>
-  <script src="js/rbush.min.js"></script>
-  <script src="js/labelgun.min.js"></script>
-  <!-- <script src="js/labels.js"></script> -->
-  <script src="js/leaflet.photon.js"></script>
-  <script src="js/leaflet-measure.js"></script>
-  <script src="data/48_1.js"></script>
-  <script>
-    window.onload = function () {
-      var highlightLayer;
-
-      function highlightFeature(e) {
-        highlightLayer = e.target;
-
-        if (
-          e.target.feature.geometry.type === 'LineString' ||
-          e.target.feature.geometry.type === 'MultiLineString'
-        ) {
-          highlightLayer.setStyle({
-            color: '#ffff00',
-          });
-        } else {
-          highlightLayer.setStyle({
-            fillColor: '#ffff00',
-            fillOpacity: 1,
-          });
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <!-- <link rel="stylesheet" href="css/L.Control.Layers.Tree.css"> -->
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap" rel="stylesheet">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
         }
-        highlightLayer.openPopup();
-      }
-
-      var map = L.map('map', {
-        zoomControl: false,
-        maxZoom: 11,
-        minZoom: 11,
-      });
-      var hash = new L.Hash(map);
-      map.attributionControl.setPrefix(
-        '<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>'
-      );
-      var autolinker = new Autolinker({ truncate: { length: 30, location: 'smart' } });
-
-      // remove popup's row if "visible-with-data"
-      function removeEmptyRowsFromPopupContent(content, feature) {
-        var tempDiv = document.createElement('div');
-        tempDiv.innerHTML = content;
-        var rows = tempDiv.querySelectorAll('tr');
-        for (var i = 0; i < rows.length; i++) {
-          var td = rows[i].querySelector('td.visible-with-data');
-          var key = td ? td.id : '';
-          if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
-            rows[i].parentNode.removeChild(rows[i]);
-          }
+        .town-label {
+            background: none !important;
+            box-shadow: none !important;
+            border: none !important;
         }
-        return tempDiv.innerHTML;
-      }
-
-      // add class to format popup if it contains media
-      function addClassToPopupIfMedia(content, popup) {
-        var tempDiv = document.createElement('div');
-        tempDiv.innerHTML = content;
-        if (tempDiv.querySelector('td img')) {
-          popup._contentNode.classList.add('media');
-          // Delay to force the redraw
-          setTimeout(function () {
-            popup.update();
-          }, 10);
-        } else {
-          popup._contentNode.classList.remove('media');
+        .town-label div {
+            background: none !important;
+            padding: 2px 6px;
+            border-radius: 0;
+            text-align: center;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            color: #E7E2D3;
+            white-space: nowrap;
+            pointer-events: none;
         }
-      }
+        </style>
+        <title>GLCF Map</title>
+    </head>
+    <body>
+        <div id="map"></div>
 
-      var zoomControl = L.control.zoom({
-        position: 'topleft',
-      }).addTo(map);
-      var measureControl = new L.Control.Measure({
-        position: 'topleft',
-        primaryLengthUnit: 'feet',
-        secondaryLengthUnit: 'miles',
-        primaryAreaUnit: 'sqfeet',
-        secondaryAreaUnit: 'sqmiles',
-      });
-      measureControl.addTo(map);
-      document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
-      document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
-      var bounds_group = new L.featureGroup([]);
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <!-- <script src="js/labels.js"></script> -->
+        <script src="js/leaflet.photon.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="data/48_1.js"></script>
 
-      function setBounds() {
-        if (bounds_group.getLayers().length) {
-          const b = bounds_group.getBounds();
-          map.fitBounds(b);
-          map.setMaxBounds(b.pad(0.1)); // pad to give a little margin
-        }
-      }
+        <script>
+        window.onload = function() {
+            var highlightLayer;
+            var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
 
-      map.createPane('pane_XYZLayer_0');
-      map.getPane('pane_XYZLayer_0').style.zIndex = 400;
-      var layer_XYZLayer_0 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        pane: 'pane_XYZLayer_0',
-        opacity: 1.0,
-        attribution: '',
-        minZoom: 11,
-        maxZoom: 11,
-        minNativeZoom: 0,
-        maxNativeZoom: 19,
-      });
-      layer_XYZLayer_0;
-      map.addLayer(layer_XYZLayer_0);
+            // Highlight feature on mouseover
+            function highlightFeature(e) {
+                highlightLayer = e.target;
 
-      // Popup + style for main layer
-      function pop_48_1(feature, layer) {
-        var popupContent =
-          '<table>\
-                    <tr>\
-                        <td colspan="2">' +
-          (feature.properties['OBJECTID'] !== null
-            ? autolinker.link(String(feature.properties['OBJECTID']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">TOWN</th>\
-                        <td>' +
-          (feature.properties['TOWN'] !== null
-            ? autolinker.link(String(feature.properties['TOWN']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' +
-          (feature.properties['SHAPE_Leng'] !== null
-            ? autolinker.link(String(feature.properties['SHAPE_Leng']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' +
-          (feature.properties['SHAPE_Area'] !== null
-            ? autolinker.link(String(feature.properties['SHAPE_Area']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' +
-          (feature.properties['2022 Total'] !== null
-            ? autolinker.link(String(feature.properties['2022 Total']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' +
-          (feature.properties['2023 Total'] !== null
-            ? autolinker.link(String(feature.properties['2023 Total']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' +
-          (feature.properties['2024 Total'] !== null
-            ? autolinker.link(String(feature.properties['2024 Total']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Total GLCF Giving from 2022 to 2024</th>\
-                        <td class="visible-with-data" id="2022-2024 Total">' +
-          (feature.properties['2022-2024 Total'] !== null
-            ? autolinker.link(String(feature.properties['2022-2024 Total']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' +
-          (feature.properties['Org_Concat'] !== null
-            ? autolinker.link(String(feature.properties['Org_Concat']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' +
-          (feature.properties['Processes'] !== null
-            ? autolinker.link(String(feature.properties['Processes']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Number of Grants</th>\
-                        <td class="visible-with-data" id="Num_Grants">' +
-          (feature.properties['Num_Grants'] !== null
-            ? autolinker.link(String(feature.properties['Num_Grants']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Number of Grantees</th>\
-                        <td class="visible-with-data" id="Num_Grantees">' +
-          (feature.properties['Num_Grantees'] !== null
-            ? autolinker.link(String(feature.properties['Num_Grantees']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Number of Grant Processes</th>\
-                        <td class="visible-with-data" id="Num_Processes">' +
-          (feature.properties['Num_Processes'] !== null
-            ? autolinker.link(String(feature.properties['Num_Processes']).replace(/'/g, '\'').toLocaleString())
-            : '') +
-          '</td>\
-                    </tr>\
+                if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+                    highlightLayer.setStyle({
+                        color: '#ffff00',
+                    });
+                } else {
+                    highlightLayer.setStyle({
+                        fillColor: '#ffff00',
+                        fillOpacity: 1
+                    });
+                }
+                highlightLayer.openPopup();
+            }
+
+            // Remove highlight on mouseout
+            function resetHighlight(e) {
+                var layer = e.target;
+                if (layer.resetStyle) {
+                    layer.resetStyle();
+                }
+                layer.closePopup();
+            }
+
+            // Remove empty rows from popup content
+            function removeEmptyRowsFromPopupContent(content, feature) {
+                var tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+                var rows = tempDiv.querySelectorAll('tr');
+                for (var i = 0; i < rows.length; i++) {
+                    var td = rows[i].querySelector('td.visible-with-data');
+                    var key = td ? td.id : '';
+                    if (td && td.classList.contains('visible-with-data') && (feature.properties[key] === null || feature.properties[key] === undefined)) {
+                        rows[i].parentNode.removeChild(rows[i]);
+                    }
+                }
+                return tempDiv.innerHTML;
+            }
+
+            // Add class if popup content contains images/media
+            function addClassToPopupIfMedia(content, popup) {
+                var tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+                if (tempDiv.querySelector('td img')) {
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() { popup.update(); }, 10);
+                } else {
+                    popup._contentNode.classList.remove('media');
+                }
+            }
+
+            var map = L.map('map', {
+                zoomControl: false,
+                minZoom: 11,
+                maxZoom: 11,
+                dragging: false,
+                scrollWheelZoom: false,
+                doubleClickZoom: false,
+                boxZoom: false,
+                keyboard: false,
+                tap: false,
+                center: [42.5748, -71.5146],
+                zoom: 11,
+            });
+
+            // Lock map bounds to current bounds (prevent panning)
+            map.setMaxBounds(map.getBounds());
+
+            var hash = new L.Hash(map);
+
+            map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="Leaflet JS library">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+
+            var zoomControl = L.control.zoom({ position: 'topleft' }).addTo(map);
+
+            var measureControl = new L.Control.Measure({
+                position: 'topleft',
+                primaryLengthUnit: 'feet',
+                secondaryLengthUnit: 'miles',
+                primaryAreaUnit: 'sqfeet',
+                secondaryAreaUnit: 'sqmiles'
+            });
+            measureControl.addTo(map);
+
+            document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+            document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
+
+            var bounds_group = new L.featureGroup([]);
+
+            function setBounds() {
+                if (bounds_group.getLayers().length) {
+                    var b = bounds_group.getBounds();
+                    map.fitBounds(b);
+                    map.setMaxBounds(b.pad(0.1));
+                }
+            }
+
+            map.createPane('pane_XYZLayer_0');
+            map.getPane('pane_XYZLayer_0').style.zIndex = 400;
+            var layer_XYZLayer_0 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                pane: 'pane_XYZLayer_0',
+                opacity: 1.0,
+                attribution: '',
+                minZoom: 11,
+                maxZoom: 11,
+                minNativeZoom: 0,
+                maxNativeZoom: 19
+            });
+            map.addLayer(layer_XYZLayer_0);
+
+            // Popup content function
+            function pop_48_1(feature, layer) {
+                var popupContent = '<table>\
+                    <tr><td colspan="2">' + (feature.properties['OBJECTID'] !== null ? autolinker.link(String(feature.properties['OBJECTID'])) : '') + '</td></tr>\
+                    <tr><th scope="row">TOWN</th><td>' + (feature.properties['TOWN'] !== null ? autolinker.link(String(feature.properties['TOWN'])) : '') + '</td></tr>\
+                    <tr><td colspan="2">' + (feature.properties['SHAPE_Leng'] !== null ? autolinker.link(String(feature.properties['SHAPE_Leng'])) : '') + '</td></tr>\
+                    <tr><td colspan="2">' + (feature.properties['SHAPE_Area'] !== null ? autolinker.link(String(feature.properties['SHAPE_Area'])) : '') + '</td></tr>\
+                    <tr><td colspan="2">' + (feature.properties['2022 Total'] !== null ? autolinker.link(String(feature.properties['2022 Total'])) : '') + '</td></tr>\
+                    <tr><td colspan="2">' + (feature.properties['2023 Total'] !== null ? autolinker.link(String(feature.properties['2023 Total'])) : '') + '</td></tr>\
+                    <tr><td colspan="2">' + (feature.properties['2024 Total'] !== null ? autolinker.link(String(feature.properties['2024 Total'])) : '') + '</td></tr>\
+                    <tr><th scope="row">Total GLCF Giving from 2022 to 2024</th><td class="visible-with-data" id="2022-2024 Total">' + (feature.properties['2022-2024 Total'] !== null ? autolinker.link(String(feature.properties['2022-2024 Total'])) : '') + '</td></tr>\
+                    <tr><td colspan="2">' + (feature.properties['Org_Concat'] !== null ? autolinker.link(String(feature.properties['Org_Concat'])) : '') + '</td></tr>\
+                    <tr><td colspan="2">' + (feature.properties['Processes'] !== null ? autolinker.link(String(feature.properties['Processes'])) : '') + '</td></tr>\
+                    <tr><th scope="row">Number of Grants</th><td class="visible-with-data" id="Num_Grants">' + (feature.properties['Num_Grants'] !== null ? autolinker.link(String(feature.properties['Num_Grants'])) : '') + '</td></tr>\
+                    <tr><th scope="row">Number of Grantees</th><td class="visible-with-data" id="Num_Grantees">' + (feature.properties['Num_Grantees'] !== null ? autolinker.link(String(feature.properties['Num_Grantees'])) : '') + '</td></tr>\
+                    <tr><th scope="row">Number of Grant Processes</th><td class="visible-with-data" id="Num_Processes">' + (feature.properties['Num_Processes'] !== null ? autolinker.link(String(feature.properties['Num_Processes'])) : '') + '</td></tr>\
                 </table>';
-        var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-        layer.on('popupopen', function (e) {
-          addClassToPopupIfMedia(content, e.popup);
-        });
-        layer.bindPopup(content, { maxHeight: 400 });
 
-        // Fix: Use parent layer_48_1 to reset style on mouseout
-        layer.on({
-          mouseover: function (e) {
-            if (
-              e.target.feature.geometry.type === 'LineString' ||
-              e.target.feature.geometry.type === 'MultiLineString'
-            ) {
-              e.target.setStyle({
-                color: '#ffff00',
-              });
-            } else {
-              e.target.setStyle({
-                fillColor: '#ffff00',
-                fillOpacity: 1,
-              });
+                var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+                layer.on('popupopen', function(e) {
+                    addClassToPopupIfMedia(content, e.popup);
+                });
+                layer.bindPopup(content, { maxHeight: 400 });
+
+                layer.on({
+                    mouseover: highlightFeature,
+                    mouseout: resetHighlight
+                });
             }
-            e.target.openPopup();
-          },
-          mouseout: function (e) {
-            layer_48_1.resetStyle(e.target);
-            e.target.closePopup();
-          },
-        });
-      }
 
-      function style_48_1_0() {
-        return {
-          pane: 'pane_48_1',
-          opacity: 1,
-          color: 'rgba(35,35,35,1.0)',
-          dashArray: '',
-          lineCap: 'butt',
-          lineJoin: 'miter',
-          weight: 1.0,
-          fill: true,
-          fillOpacity: 1,
-          fillColor: 'rgba(40,86,156,1.0)',
-          interactive: true,
+            // Style function
+            function style_48_1_0() {
+                return {
+                    pane: 'pane_48_1',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(40,86,156,1.0)',
+                    interactive: true,
+                }
+            }
+
+            // Create vector layer pane
+            map.createPane('pane_48_1');
+            map.getPane('pane_48_1').style.zIndex = 401;
+            map.getPane('pane_48_1').style['mix-blend-mode'] = 'normal';
+
+            var layer_48_1 = L.geoJson(json_48_1, {
+                attribution: '',
+                interactive: true,
+                dataVar: 'json_48_1',
+                layerName: 'layer_48_1',
+                pane: 'pane_48_1',
+                onEachFeature: pop_48_1,
+                style: style_48_1_0,
+            }).addTo(map);
+
+            bounds_group.addLayer(layer_48_1);
+
+            // Label group
+            const townLabels = L.layerGroup().addTo(map);
+
+            // Helper to measure label size
+            function measureLabelSize(text) {
+                const tempDiv = document.createElement('div');
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.visibility = 'hidden';
+                tempDiv.style.fontFamily = "'Open Sans', sans-serif";
+                tempDiv.style.fontWeight = '700';
+                tempDiv.style.fontSize = '12px';
+                tempDiv.style.whiteSpace = 'nowrap';
+                tempDiv.style.padding = '2px 6px';
+                tempDiv.innerText = text;
+                document.body.appendChild(tempDiv);
+                const width = tempDiv.offsetWidth;
+                const height = tempDiv.offsetHeight;
+                document.body.removeChild(tempDiv);
+                return { width, height };
+            }
+
+            // Convert pixel offset to latlng relative to base latlng
+            function getOffsetLatLng(baseLatLng, dxPixels, dyPixels) {
+                const point = map.latLngToContainerPoint(baseLatLng);
+                const offsetPoint = L.point(point.x + dxPixels, point.y + dyPixels);
+                return map.containerPointToLatLng(offsetPoint);
+            }
+
+            // Check if label box fits inside polygon (using turf)
+            function labelFitsInsidePolygon(feature, labelLatLng, labelWidth, labelHeight) {
+                const topLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, -labelHeight);
+                const topRight = getOffsetLatLng(labelLatLng, labelWidth / 2, -labelHeight);
+                const bottomRight = getOffsetLatLng(labelLatLng, labelWidth / 2, 0);
+                const bottomLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, 0);
+
+                const labelPolygon = turf.polygon([[
+                    [topLeft.lng, topLeft.lat],
+                    [topRight.lng, topRight.lat],
+                    [bottomRight.lng, bottomRight.lat],
+                    [bottomLeft.lng, bottomLeft.lat],
+                    [topLeft.lng, topLeft.lat]
+                ]]);
+
+                // Flatten feature geometry to polygons to avoid turf error
+                const flattened = turf.flatten(feature);
+
+                // Check all polygons, return true if any contain labelPolygon
+                for (const polyFeature of flattened.features) {
+                    if (turf.booleanContains(polyFeature, labelPolygon)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // Create label marker with position adjusted to fit inside polygon
+            function createFittedLabel(feature) {
+                const townName = feature.properties.TOWN || 'Unknown';
+                const flattened = turf.flatten(feature);
+                // Use pointOnFeature of first polygon for initial label pos
+                const labelPoint = turf.pointOnFeature(flattened.features[0]).geometry.coordinates;
+                let labelLatLng = L.latLng(labelPoint[1], labelPoint[0]);
+
+                const { width: labelWidth, height: labelHeight } = measureLabelSize(townName);
+
+                let found = false;
+
+                if (!labelFitsInsidePolygon(feature, labelLatLng, labelWidth, labelHeight)) {
+                    const maxShift = 40;
+                    outerLoop:
+                    for (let dx = -maxShift; dx <= maxShift; dx += 5) {
+                        for (let dy = -maxShift; dy <= maxShift; dy += 5) {
+                            const testLatLng = getOffsetLatLng(labelLatLng, dx, dy);
+                            if (labelFitsInsidePolygon(feature, testLatLng, labelWidth, labelHeight)) {
+                                labelLatLng = testLatLng;
+                                found = true;
+                                break outerLoop;
+                            }
+                        }
+                    }
+                    if (!found) {
+                        console.warn(`Label for ${townName} doesn't fit inside polygon — using center`);
+                    }
+                }
+                console.log(`Label added for ${townName}`);
+                return L.marker(labelLatLng, {
+                    icon: L.divIcon({
+                        className: 'town-label',
+                        html: `<div>${townName}</div>`
+                    }),
+                    interactive: false
+                });
+            }
+
+            // Clear and add labels for each feature
+            townLabels.clearLayers();
+            layer_48_1.eachLayer(function(layer) {
+                if (layer.feature) {
+                    const label = createFittedLabel(layer.feature);
+                    townLabels.addLayer(label);
+                }
+            });
+
+            setBounds();
         };
-      }
-
-      map.createPane('pane_48_1');
-      map.getPane('pane_48_1').style.zIndex = 401;
-      map.getPane('pane_48_1').style['mix-blend-mode'] = 'normal';
-
-      var layer_48_1 = new L.geoJson(json_48_1, {
-        attribution: '',
-        interactive: true,
-        dataVar: 'json_48_1',
-        layerName: 'layer_48_1',
-        pane: 'pane_48_1',
-        onEachFeature: pop_48_1,
-        style: style_48_1_0,
-      });
-      bounds_group.addLayer(layer_48_1);
-      map.addLayer(layer_48_1);
-
-      const townLabels = L.layerGroup().addTo(map);
-
-      layer_48_1.eachLayer(function (layer) {
-        if (layer.feature) {
-          const label = createFittedLabel(layer.feature);
-          townLabels.addLayer(label);
-        }
-      });
-
-      // Helper function: measure label size dynamically by creating temporary div
-      function measureLabelSize(text) {
-        const tempDiv = document.createElement('div');
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.visibility = 'hidden';
-        tempDiv.style.fontFamily = "'Open Sans', sans-serif";
-        tempDiv.style.fontWeight = '700';
-        tempDiv.style.fontSize = '12px';
-        tempDiv.style.whiteSpace = 'nowrap';
-        tempDiv.style.padding = '2px 6px';
-        tempDiv.innerText = text;
-        document.body.appendChild(tempDiv);
-        const width = tempDiv.offsetWidth;
-        const height = tempDiv.offsetHeight;
-        document.body.removeChild(tempDiv);
-        return { width, height };
-      }
-
-      // Convert pixel offset to latlng relative to a base latlng
-      function getOffsetLatLng(baseLatLng, dxPixels, dyPixels) {
-        const point = map.latLngToContainerPoint(baseLatLng);
-        const offsetPoint = L.point(point.x + dxPixels, point.y + dyPixels);
-        return map.containerPointToLatLng(offsetPoint);
-      }
-
-      // Check if label box fits fully inside polygon
-      // Assume label anchor is center bottom of box (adjust if different)
-      function labelFitsInsidePolygon(feature, labelLatLng, labelWidth, labelHeight) {
-        const topLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, -labelHeight);
-        const topRight = getOffsetLatLng(labelLatLng, labelWidth / 2, -labelHeight);
-        const bottomRight = getOffsetLatLng(labelLatLng, labelWidth / 2, 0);
-        const bottomLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, 0);
-
-        const labelPolygon = turf.polygon([
-          [
-            [topLeft.lng, topLeft.lat],
-            [topRight.lng, topRight.lat],
-            [bottomRight.lng, bottomRight.lat],
-            [bottomLeft.lng, bottomLeft.lat],
-            [topLeft.lng, topLeft.lat],
-          ],
-        ]);
-
-        // Wrap the feature geometry into turf.feature, supports multipolygon
-        const turfFeature = turf.feature(feature.geometry);
-
-        return turf.booleanContains(turfFeature, labelPolygon);
-      }
-
-      // Create label marker, adjust position to fit inside polygon if needed
-      function createFittedLabel(feature) {
-        const townName = feature.properties.TOWN || 'Unknown';
-        const labelPoint = turf.pointOnFeature(feature).geometry.coordinates;
-        let labelLatLng = L.latLng(labelPoint[1], labelPoint[0]);
-
-        const { width: labelWidth, height: labelHeight } = measureLabelSize(townName);
-
-        let found = false;
-
-        if (!labelFitsInsidePolygon(feature, labelLatLng, labelWidth, labelHeight)) {
-          const maxShift = 40; // increase shift radius
-          outerLoop: for (let dx = -maxShift; dx <= maxShift; dx += 5) {
-            for (let dy = -maxShift; dy <= maxShift; dy += 5) {
-              const testLatLng = getOffsetLatLng(labelLatLng, dx, dy);
-              if (labelFitsInsidePolygon(feature, testLatLng, labelWidth, labelHeight)) {
-                labelLatLng = testLatLng;
-                found = true;
-                break outerLoop;
-              }
-            }
-          }
-
-          if (!found) {
-            console.warn(`Label for ${townName} doesn't fit inside polygon — using center`);
-          }
-        }
-
-        console.log(`Label added for ${townName}`);
-
-        return L.marker(labelLatLng, {
-          icon: L.divIcon({
-            className: 'town-label',
-            html: `<div>${townName}</div>`,
-          }),
-          interactive: false,
-        });
-      }
-
-      // Clear existing labels if needed
-      townLabels.clearLayers();
-
-      console.log(layer_48_1.getBounds());
-
-      setBounds();
-    };
-  </script>
-</body>
+        </script>
+    </body>
 </html>
