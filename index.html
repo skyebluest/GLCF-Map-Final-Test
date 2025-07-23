@@ -7,7 +7,7 @@
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="css/leaflet.css">
-        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <!-- <link rel="stylesheet" href="css/L.Control.Layers.Tree.css"> -->
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
@@ -329,11 +329,11 @@
 	// Clear existing labels if needed
 	townLabels.clearLayers();
 	
-	json_48_1.features.forEach(feature => {
-	    if (feature.geometry) {
-	        const label = createFittedLabel(feature);
-	        townLabels.addLayer(label);
-	    }
+	map.whenReady(() => {
+	  json_48_1.features.forEach(feature => {
+	    const label = createFittedLabel(feature);
+	    townLabels.addLayer(label);
+	  });
 	});
 
         setBounds();
