@@ -247,21 +247,101 @@
         });
         bounds_group.addLayer(layer_48_1);
         map.addLayer(layer_48_1);
+	// Helper function: measure label size dynamically by creating temporary div
+	function measureLabelSize(text) {
+	    const tempDiv = document.createElement('div');
+	    tempDiv.style.position = 'absolute';
+	    tempDiv.style.visibility = 'hidden';
+	    tempDiv.style.fontFamily = "'Open Sans', sans-serif";
+	    tempDiv.style.fontWeight = '700';
+	    tempDiv.style.fontSize = '12px';
+	    tempDiv.style.whiteSpace = 'nowrap';
+	    tempDiv.style.padding = '2px 6px';
+	    tempDiv.innerText = text;
+	    document.body.appendChild(tempDiv);
+	    const width = tempDiv.offsetWidth;
+	    const height = tempDiv.offsetHeight;
+	    document.body.removeChild(tempDiv);
+	    return { width, height };
+	}
+	
+	// Convert pixel offset to latlng relative to a base latlng
+	function getOffsetLatLng(baseLatLng, dxPixels, dyPixels) {
+	    const point = map.latLngToContainerPoint(baseLatLng);
+	    const offsetPoint = L.point(point.x + dxPixels, point.y + dyPixels);
+	    return map.containerPointToLatLng(offsetPoint);
+	}
+	
+	// Check if label box fits fully inside polygon
+	// Assume label anchor is center bottom of box (adjust if different)
+	function labelFitsInsidePolygon(polygonFeature, labelLatLng, labelWidth, labelHeight) {
+	    // Calculate four corners of label box in latlng
+	    // Anchor point is center bottom, so corners:
+	    const topLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, -labelHeight);
+	    const topRight = getOffsetLatLng(labelLatLng, labelWidth / 2, -labelHeight);
+	    const bottomRight = getOffsetLatLng(labelLatLng, labelWidth / 2, 0);
+	    const bottomLeft = getOffsetLatLng(labelLatLng, -labelWidth / 2, 0);
+	
+	    const labelPolygon = turf.polygon([[
+	        [topLeft.lng, topLeft.lat],
+	        [topRight.lng, topRight.lat],
+	        [bottomRight.lng, bottomRight.lat],
+	        [bottomLeft.lng, bottomLeft.lat],
+	        [topLeft.lng, topLeft.lat]
+	    ]]);
+	
+	    return turf.booleanContains(polygonFeature, labelPolygon);
+	}
+	
+	// Create label marker, adjust position to fit inside polygon if needed
+	function createFittedLabel(feature) {
+	    const polygon = feature; // GeoJSON polygon
+	    const townName = feature.properties.TOWN || 'Unknown';
+	
+	    // Start with point on feature as label anchor
+	    let labelPoint = turf.pointOnFeature(polygon).geometry.coordinates;
+	    let labelLatLng = L.latLng(labelPoint[1], labelPoint[0]);
+	
+	    // Measure label size
+	    const { width: labelWidth, height: labelHeight } = measureLabelSize(townName);
+	
+	    // Check if label fits at initial position
+	    if (!labelFitsInsidePolygon(polygon, labelLatLng, labelWidth, labelHeight)) {
+	        // Try offsets within ±20 pixels in 5 pixel steps to find fitting position
+	        const maxShift = 20;
+	        let foundFit = false;
+	
+	        outerLoop:
+	        for (let dx = -maxShift; dx <= maxShift; dx += 5) {
+	            for (let dy = -maxShift; dy <= maxShift; dy += 5) {
+	                const testLatLng = getOffsetLatLng(labelLatLng, dx, dy);
+	                if (labelFitsInsidePolygon(polygon, testLatLng, labelWidth, labelHeight)) {
+	                    labelLatLng = testLatLng;
+	                    foundFit = true;
+	                    break outerLoop;
+	                }
+	            }
+	        }
+	        // If not found, fallback to original point (may overflow)
+	    }
+	
+	    // Create and return Leaflet marker at adjusted position
+	    return L.marker(labelLatLng, {
+	        icon: L.divIcon({
+	            className: 'town-label',
+	            html: `<div>${townName}</div>`
+	        }),
+	        interactive: false
+	    });
+	}
+	
+	// Clear existing labels if needed
+	townLabels.clearLayers();
+	
+	// Add labels with fitting logic
 	json_48_1.features.forEach(feature => {
 	    if (feature.geometry) {
-	        let point = turf.pointOnFeature(feature);  // More reliable point inside polygon
-	
-	        const coords = point.geometry.coordinates;
-	        const townName = feature.properties.TOWN || 'Unknown';
-	
-	        const label = L.marker([coords[1], coords[0]], {
-	            icon: L.divIcon({
-	                className: 'town-label',
-	                html: `<div>${townName}</div>`
-	            }),
-	            interactive: false
-	        });
-	
+	        const label = createFittedLabel(feature);
 	        townLabels.addLayer(label);
 	    }
 	});
