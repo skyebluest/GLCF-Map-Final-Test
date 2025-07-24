@@ -146,8 +146,8 @@
 	    // If not available, just placeholders
 	
 	    // Replace with your actual data field names and format accordingly
-	    var Processes = feature.properties.Processes || "No grant processes available.";
-	    var Org_Concat = feature.properties.Org_Concat || "No grantees available.";
+	    var grantProcessesList = feature.properties.Processes || "No grant processes available.";
+	    var granteesList = feature.properties.Org_Concat || "No grantees available.";
 	
 	    // If these are strings, convert to list items (assuming comma separated)
 	    function makeListHtml(data) {
