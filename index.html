@@ -7,7 +7,7 @@
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="css/leaflet.css">
-        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <!-- <link rel="stylesheet" href="css/L.Control.Layers.Tree.css"> -->
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
@@ -37,7 +37,7 @@
         </div>
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
-        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <!-- <script src="js/L.Control.Layers.Tree.min.js"></script> -->
         <script src="js/leaflet.rotatedMarker.js"></script>
         <script src="js/leaflet.pattern.js"></script>
         <script src="js/leaflet-hash.js"></script>
@@ -285,42 +285,41 @@
 			    if (!gpToggle || !grToggle || !gpList || !grList) return;
 			
 			    gpToggle.onclick = () => {
-			        const isOpening = gpList.style.display === 'none';
-			        gpList.style.display = isOpening ? 'block' : 'none';
-			        grList.style.display = 'none';
+				const isOpening = gpList.style.display === 'none';
+				gpList.style.display = isOpening ? 'block' : 'none';
+				grList.style.display = 'none';
 			
-			        if (isOpening) {
-			            // Check if it will overflow now
-			            setTimeout(() => {
-			                const popupRect = newPopupElement.getBoundingClientRect();
-			                const mapHeight = map.getSize().y;
-			                if (popupRect.bottom > mapHeight) {
-			                    // Flip it again
-			                    map.closePopup();
-			                    map.openPopup(dynamicPopup); // open original popup above anchor
-			                }
-			            }, 100);
-			        }
+				if (isOpening) {
+				    // Check if it will overflow now
+				    setTimeout(() => {
+					const popupRect = newPopupElement.getBoundingClientRect();
+					const mapHeight = map.getSize().y;
+					if (popupRect.bottom > mapHeight) {
+					    // Flip it again
+					    map.closePopup();
+					    map.openPopup(dynamicPopup); // open original popup above anchor
+					}
+				    }, 100);
+				}
 			    };
 			
 			    grToggle.onclick = () => {
-			        const isOpening = grList.style.display === 'none';
-			        grList.style.display = isOpening ? 'block' : 'none';
-			        gpList.style.display = 'none';
+				const isOpening = grList.style.display === 'none';
+				grList.style.display = isOpening ? 'block' : 'none';
+				gpList.style.display = 'none';
 			
-			        if (isOpening) {
-			            setTimeout(() => {
-			                const popupRect = newPopupElement.getBoundingClientRect();
-			                const mapHeight = map.getSize().y;
-			                if (popupRect.bottom > mapHeight) {
-			                    map.closePopup();
-			                    map.openPopup(dynamicPopup);
-			                }
-			            }, 100);
-			        }
-			    };
-		    }, 20);
-	    });
+				if (isOpening) {
+				    setTimeout(() => {
+					const popupRect = newPopupElement.getBoundingClientRect();
+					const mapHeight = map.getSize().y;
+					if (popupRect.bottom > mapHeight) {
+					    map.closePopup();
+					    map.openPopup(dynamicPopup);
+					}
+				    	}, 100);
+				}
+			};
+		}, 20);
 	}
 
 
