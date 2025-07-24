@@ -255,22 +255,30 @@
 		    if (!gpToggle || !grToggle || !gpList || !grList) return;
 		
 		    gpToggle.onclick = () => {
-		        if (gpList.style.display === 'none') {
-		            gpList.style.display = 'block';
-		            grList.style.display = 'none';
-		        } else {
-		            gpList.style.display = 'none';
-		        }
-		    };
-		
-		    grToggle.onclick = () => {
-		        if (grList.style.display === 'none') {
-		            grList.style.display = 'block';
-		            gpList.style.display = 'none';
-		        } else {
-		            grList.style.display = 'none';
-		        }
-		    };
+			    const isOpening = gpList.style.display === 'none';
+			
+			    gpList.style.display = isOpening ? 'block' : 'none';
+			    grList.style.display = 'none';
+			
+			    if (isOpening) {
+			        setTimeout(() => {
+			            map.panInside(dynamicPopup.getLatLng(), { paddingTopLeft: [0, 150] });
+			        }, 100);
+			    }
+			};
+			
+			grToggle.onclick = () => {
+			    const isOpening = grList.style.display === 'none';
+			
+			    grList.style.display = isOpening ? 'block' : 'none';
+			    gpList.style.display = 'none';
+			
+			    if (isOpening) {
+			        setTimeout(() => {
+			            map.panInside(dynamicPopup.getLatLng(), { paddingTopLeft: [0, 150] });
+			        }, 100);
+			    }
+			};
 		}, 20);
 	    });
 	}
