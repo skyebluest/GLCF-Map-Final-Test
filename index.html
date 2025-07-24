@@ -123,146 +123,118 @@
         layer_XYZLayer_0;
         map.addLayer(layer_XYZLayer_0);
         function pop_48_1(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                    if (typeof layer.closePopup == 'function') {
-                        layer.closePopup();
-                    } else {
-                        layer.eachLayer(function(feature){
-                            feature.closePopup()
-                        });
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? autolinker.link(String(feature.properties['OBJECTID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">TOWN</th>\
-                        <td>' + (feature.properties['TOWN'] !== null ? autolinker.link(String(feature.properties['TOWN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['SHAPE_Leng'] !== null ? autolinker.link(String(feature.properties['SHAPE_Leng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['SHAPE_Area'] !== null ? autolinker.link(String(feature.properties['SHAPE_Area']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['2022 Total'] !== null ? autolinker.link(String(feature.properties['2022 Total']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['2023 Total'] !== null ? autolinker.link(String(feature.properties['2023 Total']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['2024 Total'] !== null ? autolinker.link(String(feature.properties['2024 Total']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Total GLCF Giving from 2022 to 2024</th>\
-                        <td class="visible-with-data" id="2022-2024 Total">' + (feature.properties['2022-2024 Total'] !== null ? autolinker.link(String(feature.properties['2022-2024 Total']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Org_Concat'] !== null ? autolinker.link(String(feature.properties['Org_Concat']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Processes'] !== null ? autolinker.link(String(feature.properties['Processes']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Number of Grants</th>\
-                        <td class="visible-with-data" id="Num_Grants">' + (feature.properties['Num_Grants'] !== null ? autolinker.link(String(feature.properties['Num_Grants']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Number of Grantees</th>\
-                        <td class="visible-with-data" id="Num_Grantees">' + (feature.properties['Num_Grantees'] !== null ? autolinker.link(String(feature.properties['Num_Grantees']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Number of Grant Processes</th>\
-                        <td class="visible-with-data" id="Num_Processes">' + (feature.properties['Num_Processes'] !== null ? autolinker.link(String(feature.properties['Num_Processes']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-		var popup = L.popup({
-		    maxHeight: 400,
-		    autoPan: false
-		}).setContent(content);
-		
-		layer.on('popupopen', function(e) {
-		    // Wait a tick so the DOM has rendered
-		    setTimeout(function() {
-			var popupEl = document.querySelector('.leaflet-popup');
-			if (!popupEl) return;
-		
-			var popupBounds = popupEl.getBoundingClientRect();
-			var mapBounds = map.getContainer().getBoundingClientRect();
-		
-			var dx = 0, dy = 0;
-		
-			// Push away from right edge
-			if (popupBounds.right > mapBounds.right - 20) {
-			    dx = mapBounds.right - popupBounds.right - 20;
-			}
-		
-			// Push away from left edge
-			if (popupBounds.left < mapBounds.left + 20) {
-			    dx = 20 - (popupBounds.left - mapBounds.left);
-			}
-		
-			// Push down from top
-			if (popupBounds.top < mapBounds.top + 20) {
-			    dy = 20 - (popupBounds.top - mapBounds.top);
-			}
-		
-			// Push up from bottom
-			if (popupBounds.bottom > mapBounds.bottom - 20) {
-			    dy = mapBounds.bottom - popupBounds.bottom - 20;
-			}
-		
-			if (dx !== 0 || dy !== 0) {
-			    popupEl.style.transform = `translate(${dx}px, ${dy}px)`;
-			}
-		    }, 10);
-		});
-		layer.on('click', function(e) {
-		    var latlng = e.latlng;
-		    var point = map.latLngToContainerPoint(latlng);
-		    var mapSize = map.getSize();
-		    var offset = [0, 0];
-		
-		    // Calculate a safe offset based on screen position
-		    if (point.x < 200) {
-		        offset[0] = 50; // push right
-		    } else if (point.x > mapSize.x - 200) {
-		        offset[0] = -50; // push left
-		    }
-		
-		    if (point.y < 150) {
-		        offset[1] = 50; // push down
-		    } else if (point.y > mapSize.y - 150) {
-		        offset[1] = -50; // push up
-		    }
-		
-		    // Create and open popup
-		    var dynamicPopup = L.popup({
-		        autoPan: false,
-		        offset: offset,
-		        className: 'custom-popup'
-		    })
-		    .setLatLng(latlng)
-		    .setContent(content);
-		
-		    map.openPopup(dynamicPopup);
-		});
+	    layer.on({
+	        mouseout: function(e) {
+	            for (var i in e.target._eventParents) {
+	                if (typeof e.target._eventParents[i].resetStyle === 'function') {
+	                    e.target._eventParents[i].resetStyle(e.target);
+	                }
+	            }
+	            if (typeof layer.closePopup == 'function') {
+	                layer.closePopup();
+	            } else {
+	                layer.eachLayer(function(feature){
+	                    feature.closePopup();
+	                });
+	            }
+	        },
+	        mouseover: highlightFeature,
+	    });
+	
+	    // Prepare list HTML for grant processes and grantees
+	    // Example: If your data has these arrays or comma-separated strings:
+	    // If not available, just placeholders
+	
+	    // Replace with your actual data field names and format accordingly
+	    var Processes = feature.properties.Processes || "No grant processes available.";
+	    var Org_Concat = feature.properties.Org_Concat || "No grantees available.";
+	
+	    // If these are strings, convert to list items (assuming comma separated)
+	    function makeListHtml(data) {
+	        if (!data) return "<i>None</i>";
+	        if (Array.isArray(data)) {
+	            return "<ul>" + data.map(item => `<li>${item}</li>`).join('') + "</ul>";
+	        } else if (typeof data === 'string') {
+	            var items = data.split(',').map(s => s.trim()).filter(s => s.length > 0);
+	            if (items.length === 0) return "<i>None</i>";
+	            return "<ul>" + items.map(item => `<li>${item}</li>`).join('') + "</ul>";
+	        }
+	        return "<i>None</i>";
+	    }
+	
+	    var grantProcessesHtml = makeListHtml(grantProcessesList);
+	    var granteesHtml = makeListHtml(granteesList);
+	
+	    // Construct popup HTML content with flexbox style for horizontal row
+	    // Add clickable spans with IDs for toggling
+	
+	    var popupContent = `
+	        <div style="font-weight: bold; font-size: 1.2em; margin-bottom: 8px;">${feature.properties.TOWN || 'Unknown Town'}</div>
+	        <div style="display: flex; gap: 15px; font-size: 0.9em; flex-wrap: wrap; align-items: center;">
+	            <div><strong>Total GLCF Giving from 2022-2024:</strong> ${feature.properties['2022-2024 Total'] || 'N/A'}</div>
+	            <div><strong>Number of Grants:</strong> ${feature.properties.Num_Grants || 'N/A'}</div>
+	            <div>
+	                <strong style="cursor: pointer; color: blue; text-decoration: underline;" id="toggleGrantProcesses">Number of Grant Processes: ${feature.properties.Num_Processes || '0'}</strong>
+	            </div>
+	            <div>
+	                <strong style="cursor: pointer; color: blue; text-decoration: underline;" id="toggleGrantees">Number of Grantees: ${feature.properties.Num_Grantees || '0'}</strong>
+	            </div>
+	        </div>
+	        <div id="grantProcessesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
+	            ${grantProcessesHtml}
+	        </div>
+	        <div id="granteesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
+	            ${granteesHtml}
+	        </div>
+	    `;
+	
+	    var content = popupContent; // You can remove removeEmptyRowsFromPopupContent here because we control the content now
+	
+	    layer.on('click', function(e) {
+	        var latlng = e.latlng;
+	        var dynamicPopup = L.popup({
+	            autoPan: false,
+	            className: 'custom-popup'
+	        })
+	        .setLatLng(latlng)
+	        .setContent(content);
+	
+	        map.openPopup(dynamicPopup);
+	
+	        // After popup is added to DOM, add click handlers for toggling lists
+	        setTimeout(() => {
+	            var gpToggle = document.getElementById('toggleGrantProcesses');
+	            var grToggle = document.getElementById('toggleGrantees');
+	            var gpList = document.getElementById('grantProcessesList');
+	            var grList = document.getElementById('granteesList');
+	
+	            if (!gpToggle || !grToggle || !gpList || !grList) return;
+	
+	            gpToggle.onclick = () => {
+	                if (gpList.style.display === 'none') {
+	                    // Show grant processes list and hide grantees
+	                    gpList.style.display = 'block';
+	                    grList.style.display = 'none';
+	                } else {
+	                    // Hide grant processes list
+	                    gpList.style.display = 'none';
+	                }
+	            };
+	
+	            grToggle.onclick = () => {
+	                if (grList.style.display === 'none') {
+	                    // Show grantees list and hide grant processes
+	                    grList.style.display = 'block';
+	                    gpList.style.display = 'none';
+	                } else {
+	                    // Hide grantees list
+	                    grList.style.display = 'none';
+	                }
+	            };
+	        }, 10);
+	    });
+	}
 
-        }
 
         function style_48_1_0() {
             return {
