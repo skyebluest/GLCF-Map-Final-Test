@@ -45,11 +45,11 @@
 
             if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
               highlightLayer.setStyle({
-                color: '#719DA6',
+                color: '#ffff00',
               });
             } else {
               highlightLayer.setStyle({
-                fillColor: '#719DA6',
+                fillColor: '#ffff00',
                 fillOpacity: 1
               });
             }
@@ -58,7 +58,6 @@
         var map = L.map('map', {
             zoomControl:false, maxZoom:11, minZoom:11
         })
-
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -187,9 +186,53 @@
                         <td class="visible-with-data" id="Num_Processes">' + (feature.properties['Num_Processes'] !== null ? autolinker.link(String(feature.properties['Num_Processes']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
-		var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-		layer.bindPopup(content, { maxHeight: 400, autoPan: false });
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+		var popup = L.popup({
+		    maxHeight: 400,
+		    autoPan: false
+		}).setContent(content);
+		
+		layer.on('popupopen', function(e) {
+		    // Wait a tick so the DOM has rendered
+		    setTimeout(function() {
+			var popupEl = document.querySelector('.leaflet-popup');
+			if (!popupEl) return;
+		
+			var popupBounds = popupEl.getBoundingClientRect();
+			var mapBounds = map.getContainer().getBoundingClientRect();
+		
+			var dx = 0, dy = 0;
+		
+			// Push away from right edge
+			if (popupBounds.right > mapBounds.right - 20) {
+			    dx = mapBounds.right - popupBounds.right - 20;
+			}
+		
+			// Push away from left edge
+			if (popupBounds.left < mapBounds.left + 20) {
+			    dx = 20 - (popupBounds.left - mapBounds.left);
+			}
+		
+			// Push down from top
+			if (popupBounds.top < mapBounds.top + 20) {
+			    dy = 20 - (popupBounds.top - mapBounds.top);
+			}
+		
+			// Push up from bottom
+			if (popupBounds.bottom > mapBounds.bottom - 20) {
+			    dy = mapBounds.bottom - popupBounds.bottom - 20;
+			}
+		
+			if (dx !== 0 || dy !== 0) {
+			    popupEl.style.transform = `translate(${dx}px, ${dy}px)`;
+			}
+		    }, 10);
 		});
+		layer.bindPopup(popup);
+        }
 
         function style_48_1_0() {
             return {
@@ -234,38 +277,6 @@
               addLabel(layer, i);
               i++;
         });
-	map.on('popupopen', function(e) {
-	    setTimeout(function() {
-	        var popup = e.popup;
-	        if (!popup._container) return;
-	
-	        var mapSize = map.getSize();
-	        var popupPos = map.latLngToContainerPoint(popup.getLatLng());
-	        var popupWidth = popup._container.offsetWidth;
-	        var popupHeight = popup._container.offsetHeight;
-	
-	        var offsetX = 0;
-	        var offsetY = 0;
-	
-	        if (popupPos.x + popupWidth > mapSize.x) {
-	            offsetX = mapSize.x - (popupPos.x + popupWidth) - 10;
-	        }
-	        if (popupPos.x + offsetX < 0) {
-	            offsetX = -popupPos.x + 10;
-	        }
-	        if (popupPos.y + popupHeight > mapSize.y) {
-	            offsetY = mapSize.y - (popupPos.y + popupHeight) - 10;
-	        }
-	        if (popupPos.y + offsetY < 0) {
-	            offsetY = -popupPos.y + 10;
-	        }
-	
-	        popup.options.offset = L.point(offsetX, offsetY);
-	        popup.update();
-	    }, 0);
-	});
-
-
         resetLabels([layer_48_1]);
         map.on("zoomend", function(){
             resetLabels([layer_48_1]);
