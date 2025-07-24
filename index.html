@@ -202,7 +202,7 @@
 	        map.openPopup(dynamicPopup);
 	
 	        // After popup is added to DOM, add click handlers for toggling lists
-	        dynamicPopup.on('add', () => {
+		setTimeout(() => {
 		    const gpToggle = document.getElementById('toggleGrantProcesses');
 		    const grToggle = document.getElementById('toggleGrantees');
 		    const gpList = document.getElementById('grantProcessesList');
@@ -211,23 +211,17 @@
 		    if (!gpToggle || !grToggle || !gpList || !grList) return;
 		
 		    gpToggle.onclick = () => {
-		        if (gpList.style.display === 'none') {
-		            gpList.style.display = 'block';
-		            grList.style.display = 'none';
-		        } else {
-		            gpList.style.display = 'none';
-		        }
+		        const visible = gpList.style.display === 'block';
+		        gpList.style.display = visible ? 'none' : 'block';
+		        grList.style.display = 'none';
 		    };
 		
 		    grToggle.onclick = () => {
-		        if (grList.style.display === 'none') {
-		            grList.style.display = 'block';
-		            gpList.style.display = 'none';
-		        } else {
-		            grList.style.display = 'none';
-		        }
+		        const visible = grList.style.display === 'block';
+		        grList.style.display = visible ? 'none' : 'block';
+		        gpList.style.display = 'none';
 		    };
-		});
+		}, 50); // Allow time for DOM insertion
 	}
 
 
