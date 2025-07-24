@@ -7,7 +7,7 @@
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="css/leaflet.css">
-        <!-- <link rel="stylesheet" href="css/L.Control.Layers.Tree.css"> -->
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
@@ -19,16 +19,6 @@
             padding: 0;
             margin: 0;
         }
-	.leaflet-popup.custom-popup.below-anchor {
-	    transform: translateY(15px); /* move popup below anchor */
-	}
-	
-	.leaflet-popup.custom-popup.below-anchor .leaflet-popup-tip {
-	    top: -12px;
-	    bottom: auto;
-	    left: 50%;
-	    transform: translateX(-50%);
-	}
         </style>
         <title></title>
     </head>
@@ -37,7 +27,7 @@
         </div>
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
-        <!-- <script src="js/L.Control.Layers.Tree.min.js"></script> -->
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
         <script src="js/leaflet.rotatedMarker.js"></script>
         <script src="js/leaflet.pattern.js"></script>
         <script src="js/leaflet-hash.js"></script>
@@ -131,6 +121,7 @@
             minNativeZoom: 0,
             maxNativeZoom: 19
         });
+        layer_XYZLayer_0;
         map.addLayer(layer_XYZLayer_0);
 	function formatCurrency(value) {
 	    if (!isFinite(value)) return 'N/A';
@@ -231,22 +222,10 @@
 	
 	    layer.on('click', function(e) {
 	        var latlng = e.latlng;
-	        var anchorLatLng = latlng;
-		var containerPoint = map.latLngToContainerPoint(anchorLatLng);
-		
-		// Estimate popup height in pixels (before DOM is ready)
-		var estimatedPopupHeight = 300; // rough default
-		var popupWillOverflowTop = containerPoint.y - estimatedPopupHeight < 0;
-		
-		var popupOptions = {
-		    autoPan: false,
-		    className: popupWillOverflowTop ? 'custom-popup below-anchor' : 'custom-popup',
-		    offset: popupWillOverflowTop ? [0, 15] : [0, -15], // flip offset
-		    anchor: popupWillOverflowTop ? [0, -15] : undefined // optional, for arrow alignment
-		};
-		
-		var dynamicPopup = L.popup(popupOptions)
-
+	        var dynamicPopup = L.popup({
+	            autoPan: false,
+	            className: 'custom-popup'
+	        })
 	        .setLatLng(latlng)
 	        .setContent(content);
 	
@@ -254,73 +233,41 @@
 	
 	        // After popup is added to DOM, add click handlers for toggling lists
 	        setTimeout(() => {
-		    const popupElement = dynamicPopup.getElement();
-		    if (!popupElement) return;
-		
-		    const popupRect = popupElement.getBoundingClientRect();
-			const mapHeight = map.getSize().y;
-		
-		if (popupRect.bottom > mapHeight) {
-		    // Rebuild the popup below the anchor point
-		    const flippedPopup = L.popup({
-			autoPan: false,
-			className: 'custom-popup below-anchor',
-			offset: [0, 15]
-		    })
-		    .setLatLng(latlng)
-		    .setContent(content);
-		
-		    map.closePopup(); // Close the old one
-		    map.openPopup(flippedPopup);
-		
-		    setTimeout(() => {
-			    const newPopupElement = flippedPopup.getElement();
-			    if (!newPopupElement) return;
+	            var popupContainer = dynamicPopup.getElement();
+			if (!popupContainer) return;
 			
-			    const gpToggle = newPopupElement.querySelector('.toggleGrantProcesses');
-			    const grToggle = newPopupElement.querySelector('.toggleGrantees');
-			    const gpList = newPopupElement.querySelector('.grantProcessesList');
-			    const grList = newPopupElement.querySelector('.granteesList');
-			
-			    if (!gpToggle || !grToggle || !gpList || !grList) return;
-			
-			    gpToggle.onclick = () => {
-				const isOpening = gpList.style.display === 'none';
-				gpList.style.display = isOpening ? 'block' : 'none';
-				grList.style.display = 'none';
-			
-				if (isOpening) {
-				    // Check if it will overflow now
-				    setTimeout(() => {
-					const popupRect = newPopupElement.getBoundingClientRect();
-					const mapHeight = map.getSize().y;
-					if (popupRect.bottom > mapHeight) {
-					    // Flip it again
-					    map.closePopup();
-					    map.openPopup(dynamicPopup); // open original popup above anchor
-					}
-				    }, 100);
-				}
-			    };
-			
-			    grToggle.onclick = () => {
-				const isOpening = grList.style.display === 'none';
-				grList.style.display = isOpening ? 'block' : 'none';
-				gpList.style.display = 'none';
-			
-				if (isOpening) {
-				    setTimeout(() => {
-					const popupRect = newPopupElement.getBoundingClientRect();
-					const mapHeight = map.getSize().y;
-					if (popupRect.bottom > mapHeight) {
-					    map.closePopup();
-					    map.openPopup(dynamicPopup);
-					}
-				    	}, 100);
-				}
-			};
-		}, 20);
-	}}
+			var gpToggle = popupContainer.querySelector('.toggleGrantProcesses');
+			var grToggle = popupContainer.querySelector('.toggleGrantees');
+			var gpList = popupContainer.querySelector('.grantProcessesList');
+			var grList = popupContainer.querySelector('.granteesList');
+
+	
+	            if (!gpToggle || !grToggle || !gpList || !grList) return;
+	
+	            gpToggle.onclick = () => {
+	                if (gpList.style.display === 'none') {
+	                    // Show grant processes list and hide grantees
+	                    gpList.style.display = 'block';
+	                    grList.style.display = 'none';
+	                } else {
+	                    // Hide grant processes list
+	                    gpList.style.display = 'none';
+	                }
+	            };
+	
+	            grToggle.onclick = () => {
+	                if (grList.style.display === 'none') {
+	                    // Show grantees list and hide grant processes
+	                    grList.style.display = 'block';
+	                    gpList.style.display = 'none';
+	                } else {
+	                    // Hide grantees list
+	                    grList.style.display = 'none';
+	                }
+	            };
+	        }, 10);
+	    });
+	}
 
 
         function style_48_1_0() {
