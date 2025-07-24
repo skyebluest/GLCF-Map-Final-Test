@@ -124,8 +124,12 @@
         layer_XYZLayer_0;
         map.addLayer(layer_XYZLayer_0);
 	function formatCurrency(value) {
-	    if (value == null || isNaN(value)) return 'N/A';
-	    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+	    if (!isFinite(value)) return 'N/A';
+	    return new Intl.NumberFormat('en-US', {
+	        style: 'currency',
+	        currency: 'USD',
+	        maximumFractionDigits: 0
+	    }).format(value);
 	}
         function pop_48_1(feature, layer) {
 	    layer.on({
@@ -181,7 +185,7 @@
 		        <div style="display: flex; justify-content: space-between; text-align: center; gap: 10px;">
 		            <div style="flex: 1;">
 		                <div style="font-weight: bold;">Total GLCF Giving 2022-2024 </div>
-		                <div>${formatCurrency(feature.properties['2022-2024 Total']) || 'N/A'}</div>
+		                <div>${formatCurrency(Number((feature.properties['2022-2024 Total']))}</div>
 		            </div>
 		            <div style="flex: 1;">
 		                <div style="font-weight: bold;">Total Number of Grants</div>
