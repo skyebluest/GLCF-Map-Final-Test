@@ -174,16 +174,16 @@
 	            <div><strong>Total GLCF Giving from 2022-2024:</strong> ${feature.properties['2022-2024 Total'] || 'N/A'}</div>
 	            <div><strong>Number of Grants:</strong> ${feature.properties.Num_Grants || 'N/A'}</div>
 	            <div>
-	                <strong style="cursor: pointer; color: blue; text-decoration: underline;" id="toggleGrantProcesses">Number of Grant Processes: ${feature.properties.Num_Processes || '0'}</strong>
+	                <strong class="toggleGrantProcesses" style="cursor: pointer; color: blue; text-decoration: underline;">
 	            </div>
 	            <div>
-	                <strong style="cursor: pointer; color: blue; text-decoration: underline;" id="toggleGrantees">Number of Grantees: ${feature.properties.Num_Grantees || '0'}</strong>
+	                <strong class="toggleGrantees" style="cursor: pointer; color: blue; text-decoration: underline;">
 	            </div>
 	        </div>
-	        <div id="grantProcessesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
+	        <div class="grantProcessesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
 	            ${grantProcessesHtml}
 	        </div>
-	        <div id="granteesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
+	        <div class="granteesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
 	            ${granteesHtml}
 	        </div>
 	    `;
