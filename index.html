@@ -203,10 +203,14 @@
 	
 	        // After popup is added to DOM, add click handlers for toggling lists
 	        setTimeout(() => {
-	            var gpToggle = document.getElementById('toggleGrantProcesses');
-	            var grToggle = document.getElementById('toggleGrantees');
-	            var gpList = document.getElementById('grantProcessesList');
-	            var grList = document.getElementById('granteesList');
+	            var popupContainer = dynamicPopup.getElement();
+			if (!popupContainer) return;
+			
+			var gpToggle = popupContainer.querySelector('.toggleGrantProcesses');
+			var grToggle = popupContainer.querySelector('.toggleGrantees');
+			var gpList = popupContainer.querySelector('.grantProcessesList');
+			var grList = popupContainer.querySelector('.granteesList');
+
 	
 	            if (!gpToggle || !grToggle || !gpList || !grList) return;
 	
