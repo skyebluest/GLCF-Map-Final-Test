@@ -235,36 +235,33 @@
 		    var latlng = e.latlng;
 		    var point = map.latLngToContainerPoint(latlng);
 		    var mapSize = map.getSize();
+		    var offset = [0, 0];
 		
-		    // Determine popup direction
-		    var direction = 'top'; // default
-		    var offset = [0, -10]; // default popup offset
-		
-		    if (point.x < mapSize.x / 3) {
-			direction = 'right';
-			offset = [10, 0];
-		    } else if (point.x > (2 * mapSize.x) / 3) {
-			direction = 'left';
-			offset = [-10, 0];
-		    } else if (point.y < mapSize.y / 3) {
-			direction = 'bottom';
-			offset = [0, 10];
-		    } else {
-			direction = 'top';
-			offset = [0, -10];
+		    // Calculate a safe offset based on screen position
+		    if (point.x < 200) {
+		        offset[0] = 50; // push right
+		    } else if (point.x > mapSize.x - 200) {
+		        offset[0] = -50; // push left
 		    }
 		
+		    if (point.y < 150) {
+		        offset[1] = 50; // push down
+		    } else if (point.y > mapSize.y - 150) {
+		        offset[1] = -50; // push up
+		    }
+		
+		    // Create and open popup
 		    var dynamicPopup = L.popup({
-			autoPan: false,
-			offset: offset,
-			className: 'custom-popup'
+		        autoPan: false,
+		        offset: offset,
+		        className: 'custom-popup'
 		    })
 		    .setLatLng(latlng)
 		    .setContent(content);
 		
-		    dynamicPopup.options.autoPan = false;
 		    map.openPopup(dynamicPopup);
 		});
+
         }
 
         function style_48_1_0() {
