@@ -202,32 +202,37 @@
 	        map.openPopup(dynamicPopup);
 	
 	        // After popup is added to DOM, add click handlers for toggling lists
-	        dynamicPopup.on('add', () => {
-		    const gpToggle = document.getElementById('toggleGrantProcesses');
-		    const grToggle = document.getElementById('toggleGrantees');
-		    const gpList = document.getElementById('grantProcessesList');
-		    const grList = document.getElementById('granteesList');
-		
-		    if (!gpToggle || !grToggle || !gpList || !grList) return;
-		
-		    gpToggle.onclick = () => {
-		        if (gpList.style.display === 'none') {
-		            gpList.style.display = 'block';
-		            grList.style.display = 'none';
-		        } else {
-		            gpList.style.display = 'none';
-		        }
-		    };
-		
-		    grToggle.onclick = () => {
-		        if (grList.style.display === 'none') {
-		            grList.style.display = 'block';
-		            gpList.style.display = 'none';
-		        } else {
-		            grList.style.display = 'none';
-		        }
-		    };
-		});
+	        setTimeout(() => {
+	            var gpToggle = document.getElementById('toggleGrantProcesses');
+	            var grToggle = document.getElementById('toggleGrantees');
+	            var gpList = document.getElementById('grantProcessesList');
+	            var grList = document.getElementById('granteesList');
+	
+	            if (!gpToggle || !grToggle || !gpList || !grList) return;
+	
+	            gpToggle.onclick = () => {
+	                if (gpList.style.display === 'none') {
+	                    // Show grant processes list and hide grantees
+	                    gpList.style.display = 'block';
+	                    grList.style.display = 'none';
+	                } else {
+	                    // Hide grant processes list
+	                    gpList.style.display = 'none';
+	                }
+	            };
+	
+	            grToggle.onclick = () => {
+	                if (grList.style.display === 'none') {
+	                    // Show grantees list and hide grant processes
+	                    grList.style.display = 'block';
+	                    gpList.style.display = 'none';
+	                } else {
+	                    // Hide grantees list
+	                    grList.style.display = 'none';
+	                }
+	            };
+	        }, 10);
+	    });
 	}
 
 
