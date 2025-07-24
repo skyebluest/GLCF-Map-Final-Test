@@ -19,6 +19,13 @@
             padding: 0;
             margin: 0;
         }
+	.leaflet-popup.custom-popup.below-anchor .leaflet-popup-tip {
+	    bottom: 100%;
+	    top: auto;
+	    margin-bottom: 0;
+	    margin-top: -1px;
+	    transform: rotate(180deg);
+	}
         </style>
         <title></title>
     </head>
@@ -221,10 +228,22 @@
 	
 	    layer.on('click', function(e) {
 	        var latlng = e.latlng;
-	        var dynamicPopup = L.popup({
-	            autoPan: false,
-	            className: 'custom-popup'
-	        })
+	        var anchorLatLng = latlng;
+		var containerPoint = map.latLngToContainerPoint(anchorLatLng);
+		
+		// Estimate popup height in pixels (before DOM is ready)
+		var estimatedPopupHeight = 300; // rough default
+		var popupWillOverflowTop = containerPoint.y - estimatedPopupHeight < 0;
+		
+		var popupOptions = {
+		    autoPan: false,
+		    className: popupWillOverflowTop ? 'custom-popup below-anchor' : 'custom-popup',
+		    offset: popupWillOverflowTop ? [0, 15] : [0, -15], // flip offset
+		    anchor: popupWillOverflowTop ? [0, -15] : undefined // optional, for arrow alignment
+		};
+		
+		var dynamicPopup = L.popup(popupOptions)
+
 	        .setLatLng(latlng)
 	        .setContent(content);
 	
