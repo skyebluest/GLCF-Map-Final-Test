@@ -188,34 +188,8 @@
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-		layer.on('popupopen', function(e) {
-		    var popup = e.popup;
-		    var mapSize = map.getSize();
-		    var popupPos = map.latLngToContainerPoint(popup.getLatLng());
-		    var popupWidth = popup._container.offsetWidth;
-		    var popupHeight = popup._container.offsetHeight;
-		
-		    var offsetX = 0;
-		    var offsetY = 0;
-		
-		    // Check right overflow
-		    if (popupPos.x + popupWidth > mapSize.x) {
-		        offsetX = mapSize.x - (popupPos.x + popupWidth) - 10; // 10 px padding
-		    }
-		    // Check left overflow
-		    if (popupPos.x + offsetX < 0) {
-		        offsetX = -popupPos.x + 10;
-		    }
-		    // Check bottom overflow
-		    if (popupPos.y + popupHeight > mapSize.y) {
-		        offsetY = mapSize.y - (popupPos.y + popupHeight) - 10;
-		    }
-		    // Check top overflow
-		    if (popupPos.y + offsetY < 0) {
-		        offsetY = -popupPos.y + 10;
-		    }
-			layer.bindPopup(content, { maxHeight: 400, autoPan: false });
-
+		var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+		layer.bindPopup(content, { maxHeight: 400, autoPan: false });
 		    popup.options.offset = L.point(offsetX, offsetY);
 		    popup.update();
 		});
@@ -274,7 +248,7 @@
 	    var offsetY = 0;
 	
 	    if (popupPos.x + popupWidth > mapSize.x) {
-	        offsetX = mapSize.x - (popupPos.x + popupWidth) - 10; // 10 px padding
+	        offsetX = mapSize.x - (popupPos.x + popupWidth) - 10;
 	    }
 	    if (popupPos.x + offsetX < 0) {
 	        offsetX = -popupPos.x + 10;
@@ -285,14 +259,8 @@
 	    if (popupPos.y + offsetY < 0) {
 	        offsetY = -popupPos.y + 10;
 	    }
-	
-	    popup.options.offset = L.point(offsetX, offsetY);
-	    popup.update();
 	});
-	
-	    popup.options.offset = L.point(offsetX, offsetY);
-	    popup.update();
-	});
+
 
         resetLabels([layer_48_1]);
         map.on("zoomend", function(){
