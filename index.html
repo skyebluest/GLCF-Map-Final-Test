@@ -187,7 +187,6 @@
                         <td class="visible-with-data" id="Num_Processes">' + (feature.properties['Num_Processes'] !== null ? autolinker.link(String(feature.properties['Num_Processes']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
 		var content = removeEmptyRowsFromPopupContent(popupContent, feature);
 		layer.bindPopup(content, { maxHeight: 400, autoPan: false });
 		});
@@ -257,6 +256,8 @@
 	    if (popupPos.y + offsetY < 0) {
 	        offsetY = -popupPos.y + 10;
 	    }
+		popup.options.offset = L.point(offsetX, offsetY);
+		popup.update();
 	});
 
 
