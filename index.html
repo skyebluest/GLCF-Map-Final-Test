@@ -191,38 +191,76 @@
 	    var content = popupContent; // You can remove removeEmptyRowsFromPopupContent here because we control the content now
 	
 	    layer.on('click', function(e) {
-	        var latlng = e.latlng;
-	        var dynamicPopup = L.popup({
-	            autoPan: false,
-	            className: 'custom-popup'
-	        })
-	        .setLatLng(latlng)
-	        .setContent(content);
-	
-	        map.openPopup(dynamicPopup);
-	
-	        // After popup is added to DOM, add click handlers for toggling lists
-		setTimeout(() => {
-		    const gpToggle = document.getElementById('toggleGrantProcesses');
-		    const grToggle = document.getElementById('toggleGrantees');
-		    const gpList = document.getElementById('grantProcessesList');
-		    const grList = document.getElementById('granteesList');
+		    // Prepare lists *fresh* per feature
+		    var grantProcessesList = feature.properties.Processes || "No grant processes available.";
+		    var granteesList = feature.properties.Org_Concat || "No grantees available.";
 		
-		    if (!gpToggle || !grToggle || !gpList || !grList) return;
+		    function makeListHtml(data) {
+		        if (!data) return "<i>None</i>";
+		        if (Array.isArray(data)) {
+		            return "<ul>" + data.map(item => `<li>${item}</li>`).join('') + "</ul>";
+		        } else if (typeof data === 'string') {
+		            var items = data.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+		            if (items.length === 0) return "<i>None</i>";
+		            return "<ul>" + items.map(item => `<li>${item}</li>`).join('') + "</ul>";
+		        }
+		        return "<i>None</i>";
+		    }
 		
-		    gpToggle.onclick = () => {
-		        const visible = gpList.style.display === 'block';
-		        gpList.style.display = visible ? 'none' : 'block';
-		        grList.style.display = 'none';
-		    };
+		    var grantProcessesHtml = makeListHtml(grantProcessesList);
+		    var granteesHtml = makeListHtml(granteesList);
 		
-		    grToggle.onclick = () => {
-		        const visible = grList.style.display === 'block';
-		        grList.style.display = visible ? 'none' : 'block';
-		        gpList.style.display = 'none';
-		    };
-		}, 50); // Allow time for DOM insertion
-	}
+		    var popupContent = `
+		        <div style="font-weight: bold; font-size: 1.2em; margin-bottom: 8px;">${feature.properties.TOWN || 'Unknown Town'}</div>
+		        <div style="display: flex; gap: 15px; font-size: 0.9em; flex-wrap: wrap; align-items: center;">
+		            <div><strong>Total GLCF Giving from 2022-2024:</strong> ${feature.properties['2022-2024 Total'] || 'N/A'}</div>
+		            <div><strong>Number of Grants:</strong> ${feature.properties.Num_Grants || 'N/A'}</div>
+		            <div>
+		                <strong style="cursor: pointer; color: blue; text-decoration: underline;" id="toggleGrantProcesses">Number of Grant Processes: ${feature.properties.Num_Processes || '0'}</strong>
+		            </div>
+		            <div>
+		                <strong style="cursor: pointer; color: blue; text-decoration: underline;" id="toggleGrantees">Number of Grantees: ${feature.properties.Num_Grantees || '0'}</strong>
+		            </div>
+		        </div>
+		        <div id="grantProcessesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
+		            ${grantProcessesHtml}
+		        </div>
+		        <div id="granteesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
+		            ${granteesHtml}
+		        </div>
+		    `;
+		
+		    var dynamicPopup = L.popup({
+		        autoPan: false,
+		        className: 'custom-popup'
+		    })
+		    .setLatLng(e.latlng)
+		    .setContent(popupContent);
+		
+		    map.openPopup(dynamicPopup);
+		
+		    // Add event listeners once DOM is added
+		    setTimeout(() => {
+		        const gpToggle = document.getElementById('toggleGrantProcesses');
+		        const grToggle = document.getElementById('toggleGrantees');
+		        const gpList = document.getElementById('grantProcessesList');
+		        const grList = document.getElementById('granteesList');
+		
+		        if (!gpToggle || !grToggle || !gpList || !grList) return;
+		
+		        gpToggle.onclick = () => {
+		            const visible = gpList.style.display === 'block';
+		            gpList.style.display = visible ? 'none' : 'block';
+		            grList.style.display = 'none';
+		        };
+		
+		        grToggle.onclick = () => {
+		            const visible = grList.style.display === 'block';
+		            grList.style.display = visible ? 'none' : 'block';
+		            gpList.style.display = 'none';
+		        };
+		    }, 50);
+		});
 
 
         function style_48_1_0() {
