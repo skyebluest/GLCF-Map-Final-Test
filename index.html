@@ -233,8 +233,19 @@
 	
 	        // After popup is added to DOM, add click handlers for toggling lists
 	        setTimeout(() => {
-	            var popupContainer = dynamicPopup.getElement();
-			if (!popupContainer) return;
+		        const popupElement = dynamicPopup.getElement();
+		        if (!popupElement) return;
+		
+		        const popupRect = popupElement.getBoundingClientRect();
+		        const offsetTop = popupRect.top;
+		        
+		        // If the popup would overflow above the screen
+		        if (offsetTop < 0) {
+		            // Reposition popup slightly lower (e.g. 100px down)
+		            const newLatLng = map.layerPointToLatLng(
+		                map.latLngToLayerPoint(latlng).add([0, 100])
+		            );
+		            dynamicPopup.setLatLng(newLatLng);
 			
 			var gpToggle = popupContainer.querySelector('.toggleGrantProcesses');
 			var grToggle = popupContainer.querySelector('.toggleGrantees');
@@ -265,7 +276,7 @@
 	                    grList.style.display = 'none';
 	                }
 	            };
-	        }, 10);
+	        }, 20);
 	    });
 	}
 
