@@ -19,12 +19,16 @@
             padding: 0;
             margin: 0;
         }
+	.leaflet-popup.custom-popup.below-anchor {
+	    transform: translateY(15px); /* move popup below anchor */
+	}
+	
 	.leaflet-popup.custom-popup.below-anchor .leaflet-popup-tip {
-	    bottom: 100%;
-	    top: auto;
-	    margin-bottom: 0;
-	    margin-top: -1px;
-	    transform: rotate(180deg);
+	    top: -12px;
+	    bottom: auto;
+	    margin: 0 auto;
+	    border-width: 0 12px 12px 12px;
+	    border-color: transparent transparent white transparent;
 	}
         </style>
         <title></title>
@@ -255,34 +259,42 @@
 		    if (!popupElement) return;
 		
 		    const popupRect = popupElement.getBoundingClientRect();
-		    const offsetTop = popupRect.top;
+			const mapHeight = map.getSize().y;
 		
-		    if (offsetTop < 0) {
-		        // Reposition popup slightly lower
-		        const newLatLng = map.layerPointToLatLng(
-		            map.latLngToLayerPoint(latlng).add([0, 100])
-		        );
-		        dynamicPopup.setLatLng(newLatLng);
-		    }
+		if (popupRect.bottom > mapHeight) {
+		    // Rebuild the popup below the anchor point
+		    const flippedPopup = L.popup({
+			autoPan: false,
+			className: 'custom-popup below-anchor',
+			offset: [0, 15]
+		    })
+		    .setLatLng(latlng)
+		    .setContent(content);
 		
-		    // ↓↓↓ This is outside the `if` now
-		    const gpToggle = popupElement.querySelector('.toggleGrantProcesses');
-		    const grToggle = popupElement.querySelector('.toggleGrantees');
-		    const gpList = popupElement.querySelector('.grantProcessesList');
-		    const grList = popupElement.querySelector('.granteesList');
+		    map.closePopup(); // Close the old one
+		    map.openPopup(flippedPopup);
 		
-		    if (!gpToggle || !grToggle || !gpList || !grList) return;
+		    setTimeout(() => {
+			const newPopupElement = flippedPopup.getElement();
+			if (!newPopupElement) return;
 		
-		    gpToggle.onclick = () => {
+			const gpToggle = newPopupElement.querySelector('.toggleGrantProcesses');
+			const grToggle = newPopupElement.querySelector('.toggleGrantees');
+			const gpList = newPopupElement.querySelector('.grantProcessesList');
+			const grList = newPopupElement.querySelector('.granteesList');
+		
+			if (!gpToggle || !grToggle || !gpList || !grList) return;
+		
+			gpToggle.onclick = () => {
 			    const isOpening = gpList.style.display === 'none';
 			
 			    gpList.style.display = isOpening ? 'block' : 'none';
 			    grList.style.display = 'none';
 			
 			    if (isOpening) {
-			        setTimeout(() => {
-			            map.panInside(dynamicPopup.getLatLng(), { paddingTopLeft: [0, 150] });
-			        }, 100);
+				setTimeout(() => {
+				    map.panInside(dynamicPopup.getLatLng(), { paddingTopLeft: [0, 150] });
+				}, 100);
 			    }
 			};
 			
@@ -293,10 +305,9 @@
 			    gpList.style.display = 'none';
 			
 			    if (isOpening) {
-			        setTimeout(() => {
-			            map.panInside(dynamicPopup.getLatLng(), { paddingTopLeft: [0, 150] });
-			        }, 100);
-			    }
+				setTimeout(() => {
+				    map.panInside(dynamicPopup.getLatLng(), { paddingTopLeft: [0, 150] });
+				}, 100);
 			};
 		}, 20);
 	    });
