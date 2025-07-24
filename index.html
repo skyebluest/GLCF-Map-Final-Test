@@ -121,7 +121,6 @@
             minNativeZoom: 0,
             maxNativeZoom: 19
         });
-        layer_XYZLayer_0;
         map.addLayer(layer_XYZLayer_0);
 	function formatCurrency(value) {
 	    if (!isFinite(value)) return 'N/A';
@@ -233,49 +232,46 @@
 	
 	        // After popup is added to DOM, add click handlers for toggling lists
 	        setTimeout(() => {
-		        const popupElement = dynamicPopup.getElement();
-		        if (!popupElement) return;
+		    const popupElement = dynamicPopup.getElement();
+		    if (!popupElement) return;
 		
-		        const popupRect = popupElement.getBoundingClientRect();
-		        const offsetTop = popupRect.top;
-		        
-		        // If the popup would overflow above the screen
-		        if (offsetTop < 0) {
-		            // Reposition popup slightly lower (e.g. 100px down)
-		            const newLatLng = map.layerPointToLatLng(
-		                map.latLngToLayerPoint(latlng).add([0, 100])
-		            );
-		            dynamicPopup.setLatLng(newLatLng);
-			
-			var gpToggle = popupElement.querySelector('.toggleGrantProcesses');
-			var grToggle = popupElement.querySelector('.toggleGrantees');
-			var gpList = popupElement.querySelector('.grantProcessesList');
-			var grList = popupElement.querySelector('.granteesList');
-	
-	            if (!gpToggle || !grToggle || !gpList || !grList) return;
-	
-	            gpToggle.onclick = () => {
-	                if (gpList.style.display === 'none') {
-	                    // Show grant processes list and hide grantees
-	                    gpList.style.display = 'block';
-	                    grList.style.display = 'none';
-	                } else {
-	                    // Hide grant processes list
-	                    gpList.style.display = 'none';
-	                }
-	            };
-	
-	            grToggle.onclick = () => {
-	                if (grList.style.display === 'none') {
-	                    // Show grantees list and hide grant processes
-	                    grList.style.display = 'block';
-	                    gpList.style.display = 'none';
-	                } else {
-	                    // Hide grantees list
-	                    grList.style.display = 'none';
-	                }
-	            };
-	        }, 20);
+		    const popupRect = popupElement.getBoundingClientRect();
+		    const offsetTop = popupRect.top;
+		
+		    if (offsetTop < 0) {
+		        // Reposition popup slightly lower
+		        const newLatLng = map.layerPointToLatLng(
+		            map.latLngToLayerPoint(latlng).add([0, 100])
+		        );
+		        dynamicPopup.setLatLng(newLatLng);
+		    }
+		
+		    // ↓↓↓ This is outside the `if` now
+		    const gpToggle = popupElement.querySelector('.toggleGrantProcesses');
+		    const grToggle = popupElement.querySelector('.toggleGrantees');
+		    const gpList = popupElement.querySelector('.grantProcessesList');
+		    const grList = popupElement.querySelector('.granteesList');
+		
+		    if (!gpToggle || !grToggle || !gpList || !grList) return;
+		
+		    gpToggle.onclick = () => {
+		        if (gpList.style.display === 'none') {
+		            gpList.style.display = 'block';
+		            grList.style.display = 'none';
+		        } else {
+		            gpList.style.display = 'none';
+		        }
+		    };
+		
+		    grToggle.onclick = () => {
+		        if (grList.style.display === 'none') {
+		            grList.style.display = 'block';
+		            gpList.style.display = 'none';
+		        } else {
+		            grList.style.display = 'none';
+		        }
+		    };
+		}, 20);
 	    });
 	}
 
