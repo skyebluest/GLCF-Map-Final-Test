@@ -170,28 +170,39 @@
 	    // Add clickable spans with IDs for toggling
 	
 	    var popupContent = `
-	        <div style="font-weight: bold; font-size: 1.2em; margin-bottom: 8px;">${feature.properties.TOWN || 'Unknown Town'}</div>
-	        <div style="display: flex; gap: 15px; font-size: 0.9em; flex-wrap: wrap; align-items: center;">
-	            <div><strong>Total GLCF Giving from 2022-2024:</strong> ${feature.properties['2022-2024 Total'] || 'N/A'}</div>
-	            <div><strong>Number of Grants:</strong> ${feature.properties.Num_Grants || 'N/A'}</div>
-	            <div>
-		      <strong class="toggleGrantProcesses" style="cursor: pointer; color: blue; text-decoration: underline;">
-		        ${feature.properties.Num_Processes || 0} Grant Processes
-		      </strong>
+		    <div style="font-weight: bold; font-size: 1.3em; text-align: center; margin-bottom: 10px;">
+		        ${feature.properties.TOWN || 'Unknown Town'}
 		    </div>
-		    <div>
-		      <strong class="toggleGrantees" style="cursor: pointer; color: blue; text-decoration: underline;">
-		        ${feature.properties.Num_Grantees || 0} Grantees
-		      </strong>
+		    <div style="border: 1px solid #ccc; border-radius: 8px; padding: 10px; font-size: 0.9em;">
+		        <div style="display: flex; justify-content: space-between; text-align: center; gap: 10px;">
+		            <div style="flex: 1;">
+		                <div style="font-weight: bold;">Total GLCF Giving</div>
+		                <div>${feature.properties['2022-2024 Total'] || 'N/A'}</div>
+		            </div>
+		            <div style="flex: 1;">
+		                <div style="font-weight: bold;"># Grants</div>
+		                <div>${feature.properties.Num_Grants || 'N/A'}</div>
+		            </div>
+		            <div style="flex: 1;">
+		                <div style="font-weight: bold; cursor: pointer; color: blue; text-decoration: underline;" class="toggleGrantProcesses">
+		                    # ${feature.properties.Num_Processes || 0} Processes
+		                </div>
+		            </div>
+		            <div style="flex: 1;">
+		                <div style="font-weight: bold; cursor: pointer; color: blue; text-decoration: underline;" class="toggleGrantees">
+		                    # ${feature.properties.Num_Grantees || 0} Grantees
+		                </div>
+		            </div>
+		        </div>
 		    </div>
-	        </div>
-	        <div class="grantProcessesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
-	            ${grantProcessesHtml}
-	        </div>
-	        <div class="granteesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
-	            ${granteesHtml}
-	        </div>
-	    `;
+		    <div class="grantProcessesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
+		        ${grantProcessesHtml}
+		    </div>
+		    <div class="granteesList" style="margin-top: 10px; display: none; font-size: 0.9em; max-height: 150px; overflow-y: auto; border-top: 1px solid #ccc; padding-top: 5px;">
+		        ${granteesHtml}
+		    </div>
+		`;
+
 	
 	    var content = popupContent; // You can remove removeEmptyRowsFromPopupContent here because we control the content now
 	
