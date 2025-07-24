@@ -26,9 +26,8 @@
 	.leaflet-popup.custom-popup.below-anchor .leaflet-popup-tip {
 	    top: -12px;
 	    bottom: auto;
-	    margin: 0 auto;
-	    border-width: 0 12px 12px 12px;
-	    border-color: transparent transparent white transparent;
+	    left: 50%;
+	    transform: translateX(-50%);
 	}
         </style>
         <title></title>
@@ -275,41 +274,52 @@
 		    map.openPopup(flippedPopup);
 		
 		    setTimeout(() => {
-			const newPopupElement = flippedPopup.getElement();
-			if (!newPopupElement) return;
-		
-			const gpToggle = newPopupElement.querySelector('.toggleGrantProcesses');
-			const grToggle = newPopupElement.querySelector('.toggleGrantees');
-			const gpList = newPopupElement.querySelector('.grantProcessesList');
-			const grList = newPopupElement.querySelector('.granteesList');
-		
-			if (!gpToggle || !grToggle || !gpList || !grList) return;
-		
-			gpToggle.onclick = () => {
-			    const isOpening = gpList.style.display === 'none';
+			    const newPopupElement = flippedPopup.getElement();
+			    if (!newPopupElement) return;
 			
-			    gpList.style.display = isOpening ? 'block' : 'none';
-			    grList.style.display = 'none';
+			    const gpToggle = newPopupElement.querySelector('.toggleGrantProcesses');
+			    const grToggle = newPopupElement.querySelector('.toggleGrantees');
+			    const gpList = newPopupElement.querySelector('.grantProcessesList');
+			    const grList = newPopupElement.querySelector('.granteesList');
 			
-			    if (isOpening) {
-				setTimeout(() => {
-				    map.panInside(dynamicPopup.getLatLng(), { paddingTopLeft: [0, 150] });
-				}, 100);
-			    }
-			};
+			    if (!gpToggle || !grToggle || !gpList || !grList) return;
 			
-			grToggle.onclick = () => {
-			    const isOpening = grList.style.display === 'none';
+			    gpToggle.onclick = () => {
+			        const isOpening = gpList.style.display === 'none';
+			        gpList.style.display = isOpening ? 'block' : 'none';
+			        grList.style.display = 'none';
 			
-			    grList.style.display = isOpening ? 'block' : 'none';
-			    gpList.style.display = 'none';
+			        if (isOpening) {
+			            // Check if it will overflow now
+			            setTimeout(() => {
+			                const popupRect = newPopupElement.getBoundingClientRect();
+			                const mapHeight = map.getSize().y;
+			                if (popupRect.bottom > mapHeight) {
+			                    // Flip it again
+			                    map.closePopup();
+			                    map.openPopup(dynamicPopup); // open original popup above anchor
+			                }
+			            }, 100);
+			        }
+			    };
 			
-			    if (isOpening) {
-				setTimeout(() => {
-				    map.panInside(dynamicPopup.getLatLng(), { paddingTopLeft: [0, 150] });
-				}, 100);
-			};
-		}, 20);
+			    grToggle.onclick = () => {
+			        const isOpening = grList.style.display === 'none';
+			        grList.style.display = isOpening ? 'block' : 'none';
+			        gpList.style.display = 'none';
+			
+			        if (isOpening) {
+			            setTimeout(() => {
+			                const popupRect = newPopupElement.getBoundingClientRect();
+			                const mapHeight = map.getSize().y;
+			                if (popupRect.bottom > mapHeight) {
+			                    map.closePopup();
+			                    map.openPopup(dynamicPopup);
+			                }
+			            }, 100);
+			        }
+			    };
+		    }, 20);
 	    });
 	}
 
