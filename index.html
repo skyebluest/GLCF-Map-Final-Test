@@ -25,11 +25,6 @@
 	    color: #E7E2D3;
 	    pointer-events: none;
 	}
-	.custom-popup.popup-below .leaflet-popup-tip {
-	    top: 0;
-	    bottom: auto;
-	    transform: rotate(180deg);
-	}
         </style>
         <title></title>
     </head>
@@ -232,64 +227,52 @@
 	    var content = popupContent; // You can remove removeEmptyRowsFromPopupContent here because we control the content now
 	
 	    layer.on('click', function(e) {
-		    const latlng = e.latlng;
-		
-		    // Convert the click location to container (screen) point
-		    const containerPoint = map.latLngToContainerPoint(latlng);
-		    const mapSize = map.getSize();
-		
-		    // Estimated popup height and width
-		    const popupHeight = 250; // adjust if needed
-		    const popupWidth = 300;
-		
-		    // Default values (popup above)
-		    let offset = [0, -10];
-		    let className = 'custom-popup';
-		
-		    // Not enough space above → move below
-		    if (containerPoint.y - popupHeight < 0) {
-		        offset = [0, 10];
-		        className += ' popup-below';
-		    }
-		
-		    const dynamicPopup = L.popup({
-		        autoPan: false,
-		        className: className,
-		        offset: offset,
-		        closeButton: true,
-		        autoClose: true
-		    })
-		    .setLatLng(latlng)
-		    .setContent(content);
-		
-		    map.openPopup(dynamicPopup);
-		
-		    // After popup opens, enable toggle interactions
-		    setTimeout(() => {
-		        const popupContainer = dynamicPopup.getElement();
-		        if (!popupContainer) return;
-		
-		        const gpToggle = popupContainer.querySelector('.toggleGrantProcesses');
-		        const grToggle = popupContainer.querySelector('.toggleGrantees');
-		        const gpList = popupContainer.querySelector('.grantProcessesList');
-		        const grList = popupContainer.querySelector('.granteesList');
-		
-		        if (!gpToggle || !grToggle || !gpList || !grList) return;
-		
-		        gpToggle.onclick = () => {
-		            const isVisible = gpList.style.display !== 'none';
-		            gpList.style.display = isVisible ? 'none' : 'block';
-		            grList.style.display = 'none';
-		        };
-		
-		        grToggle.onclick = () => {
-		            const isVisible = grList.style.display !== 'none';
-		            grList.style.display = isVisible ? 'none' : 'block';
-		            gpList.style.display = 'none';
-		        };
-		    }, 10);
-		});
-		});
+	        var latlng = e.latlng;
+	        var dynamicPopup = L.popup({
+	            autoPan: false,
+	            className: 'custom-popup'
+	        })
+	        .setLatLng(latlng)
+	        .setContent(content);
+	
+	        map.openPopup(dynamicPopup);
+	
+	        // After popup is added to DOM, add click handlers for toggling lists
+	        setTimeout(() => {
+	            var popupContainer = dynamicPopup.getElement();
+			if (!popupContainer) return;
+			
+			var gpToggle = popupContainer.querySelector('.toggleGrantProcesses');
+			var grToggle = popupContainer.querySelector('.toggleGrantees');
+			var gpList = popupContainer.querySelector('.grantProcessesList');
+			var grList = popupContainer.querySelector('.granteesList');
+
+	
+	            if (!gpToggle || !grToggle || !gpList || !grList) return;
+	
+	            gpToggle.onclick = () => {
+	                if (gpList.style.display === 'none') {
+	                    // Show grant processes list and hide grantees
+	                    gpList.style.display = 'block';
+	                    grList.style.display = 'none';
+	                } else {
+	                    // Hide grant processes list
+	                    gpList.style.display = 'none';
+	                }
+	            };
+	
+	            grToggle.onclick = () => {
+	                if (grList.style.display === 'none') {
+	                    // Show grantees list and hide grant processes
+	                    grList.style.display = 'block';
+	                    gpList.style.display = 'none';
+	                } else {
+	                    // Hide grantees list
+	                    grList.style.display = 'none';
+	                }
+	            };
+	        }, 10);
+	    });
 		// Add custom label at manually specified coordinates if LABEL_CNTR exists
 		if (feature.properties['LABEL_CNTR']) {
 		    const labelParts = feature.properties['LABEL_CNTR'].split(',');
