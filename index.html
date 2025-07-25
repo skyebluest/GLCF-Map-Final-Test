@@ -232,66 +232,63 @@
 	    var content = popupContent; // You can remove removeEmptyRowsFromPopupContent here because we control the content now
 	
 	    layer.on('click', function(e) {
-		    var latlng = e.latlng;
+		    const latlng = e.latlng;
 		
-		    // Get pixel location of the clicked point
-		    var containerPoint = map.latLngToContainerPoint(latlng);
-		    var mapHeight = map.getSize().y;
+		    // Convert the click location to container (screen) point
+		    const containerPoint = map.latLngToContainerPoint(latlng);
+		    const mapSize = map.getSize();
 		
-		    // Estimate popup height after expansion (adjust if needed)
-		    var estimatedHeight = 250;
+		    // Estimated popup height and width
+		    const popupHeight = 250; // adjust if needed
+		    const popupWidth = 300;
 		
-		    // Determine vertical offset and class
-		    var offset = [0, -10]; // Default: above
-		    var className = 'custom-popup';
+		    // Default values (popup above)
+		    let offset = [0, -10];
+		    let className = 'custom-popup';
 		
-		    if (containerPoint.y - estimatedHeight < 0) {
-		        // Not enough space above — flip below
+		    // Not enough space above → move below
+		    if (containerPoint.y - popupHeight < 0) {
 		        offset = [0, 10];
 		        className += ' popup-below';
 		    }
 		
-		    var dynamicPopup = L.popup({
+		    const dynamicPopup = L.popup({
 		        autoPan: false,
 		        className: className,
 		        offset: offset,
-		        closeButton: true
+		        closeButton: true,
+		        autoClose: true
 		    })
 		    .setLatLng(latlng)
 		    .setContent(content);
 		
 		    map.openPopup(dynamicPopup);
 		
-		    // After popup is added to DOM, add click handlers for toggling lists
+		    // After popup opens, enable toggle interactions
 		    setTimeout(() => {
-		        var popupContainer = dynamicPopup.getElement();
+		        const popupContainer = dynamicPopup.getElement();
 		        if (!popupContainer) return;
 		
-		        var gpToggle = popupContainer.querySelector('.toggleGrantProcesses');
-		        var grToggle = popupContainer.querySelector('.toggleGrantees');
-		        var gpList = popupContainer.querySelector('.grantProcessesList');
-		        var grList = popupContainer.querySelector('.granteesList');
+		        const gpToggle = popupContainer.querySelector('.toggleGrantProcesses');
+		        const grToggle = popupContainer.querySelector('.toggleGrantees');
+		        const gpList = popupContainer.querySelector('.grantProcessesList');
+		        const grList = popupContainer.querySelector('.granteesList');
 		
 		        if (!gpToggle || !grToggle || !gpList || !grList) return;
 		
 		        gpToggle.onclick = () => {
-		            if (gpList.style.display === 'none') {
-		                gpList.style.display = 'block';
-		                grList.style.display = 'none';
-		            } else {
-		                gpList.style.display = 'none';
-		            }
+		            const isVisible = gpList.style.display !== 'none';
+		            gpList.style.display = isVisible ? 'none' : 'block';
+		            grList.style.display = 'none';
 		        };
 		
 		        grToggle.onclick = () => {
-		            if (grList.style.display === 'none') {
-		                grList.style.display = 'block';
-		                gpList.style.display = 'none';
-		            } else {
-		                grList.style.display = 'none';
-		            }
+		            const isVisible = grList.style.display !== 'none';
+		            grList.style.display = isVisible ? 'none' : 'block';
+		            gpList.style.display = 'none';
 		        };
 		    }, 10);
+		});
 		});
 		// Add custom label at manually specified coordinates if LABEL_CNTR exists
 		if (feature.properties['LABEL_CNTR']) {
