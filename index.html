@@ -320,21 +320,6 @@
         map.addLayer(layer_48_1);
         setBounds();
         var i = 0;
-        layer_48_1.eachLayer(function(layer) {
-            var labelText = feature.properties.TOWN;
-		var latlng = feature.properties.LABEL_CNTR.split(',').map(Number);
-		
-		var label = L.marker([latlng[0], latlng[1]], {
-		    icon: L.divIcon({
-		        className: 'town-label',
-		        html: labelText,
-		        iconSize: null,
-		        iconAnchor: [labelText.length * 3.5, 10] // Center horizontally based on character count
-		    }),
-		    interactive: false
-		});
-		label.addTo(map);
-        });
         resetLabels([layer_48_1]);
         map.on("zoomend", function(){
             resetLabels([layer_48_1]);
