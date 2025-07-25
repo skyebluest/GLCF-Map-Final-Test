@@ -19,6 +19,12 @@
             padding: 0;
             margin: 0;
         }
+	.town-label {
+	    font-size: 14px;
+	    font-weight: bold;
+	    color: #E7E2D3;
+	    pointer-events: none;
+	}
         </style>
         <title></title>
     </head>
@@ -267,8 +273,21 @@
 	            };
 	        }, 10);
 	    });
+		// Add custom label at manually specified coordinates if LABEL_CNTR exists
+		if (feature.properties['LABEL_CNTR']) {
+		    const labelParts = feature.properties['LABEL_CNTR'].split(',');
+		    const lat = parseFloat(labelParts[0]);
+		    const lng = parseFloat(labelParts[1]);
+		
+		    const labelIcon = L.divIcon({
+		        className: 'town-label',
+		        html: `<div>${feature.properties['TOWN']}</div>`,
+		        iconSize: null
+		    });
+		
+		    L.marker([lat, lng], { icon: labelIcon, interactive: false }).addTo(map);
+		}
 	}
-
 
         function style_48_1_0() {
             return {
