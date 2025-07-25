@@ -25,6 +25,11 @@
 	    color: #E7E2D3;
 	    pointer-events: none;
 	}
+	.custom-popup.popup-below .leaflet-popup-tip {
+	    top: 0;
+	    bottom: auto;
+	    transform: rotate(180deg);
+	}
         </style>
         <title></title>
     </head>
@@ -227,52 +232,67 @@
 	    var content = popupContent; // You can remove removeEmptyRowsFromPopupContent here because we control the content now
 	
 	    layer.on('click', function(e) {
-	        var latlng = e.latlng;
-	        var dynamicPopup = L.popup({
-	            autoPan: false,
-	            className: 'custom-popup'
-	        })
-	        .setLatLng(latlng)
-	        .setContent(content);
-	
-	        map.openPopup(dynamicPopup);
-	
-	        // After popup is added to DOM, add click handlers for toggling lists
-	        setTimeout(() => {
-	            var popupContainer = dynamicPopup.getElement();
-			if (!popupContainer) return;
-			
-			var gpToggle = popupContainer.querySelector('.toggleGrantProcesses');
-			var grToggle = popupContainer.querySelector('.toggleGrantees');
-			var gpList = popupContainer.querySelector('.grantProcessesList');
-			var grList = popupContainer.querySelector('.granteesList');
-
-	
-	            if (!gpToggle || !grToggle || !gpList || !grList) return;
-	
-	            gpToggle.onclick = () => {
-	                if (gpList.style.display === 'none') {
-	                    // Show grant processes list and hide grantees
-	                    gpList.style.display = 'block';
-	                    grList.style.display = 'none';
-	                } else {
-	                    // Hide grant processes list
-	                    gpList.style.display = 'none';
-	                }
-	            };
-	
-	            grToggle.onclick = () => {
-	                if (grList.style.display === 'none') {
-	                    // Show grantees list and hide grant processes
-	                    grList.style.display = 'block';
-	                    gpList.style.display = 'none';
-	                } else {
-	                    // Hide grantees list
-	                    grList.style.display = 'none';
-	                }
-	            };
-	        }, 10);
-	    });
+		    var latlng = e.latlng;
+		
+		    // Get pixel location of the clicked point
+		    var containerPoint = map.latLngToContainerPoint(latlng);
+		    var mapHeight = map.getSize().y;
+		
+		    // Estimate popup height after expansion (adjust if needed)
+		    var estimatedHeight = 250;
+		
+		    // Determine vertical offset and class
+		    var offset = [0, -10]; // Default: above
+		    var className = 'custom-popup';
+		
+		    if (containerPoint.y - estimatedHeight < 0) {
+		        // Not enough space above — flip below
+		        offset = [0, 10];
+		        className += ' popup-below';
+		    }
+		
+		    var dynamicPopup = L.popup({
+		        autoPan: false,
+		        className: className,
+		        offset: offset,
+		        closeButton: true
+		    })
+		    .setLatLng(latlng)
+		    .setContent(content);
+		
+		    map.openPopup(dynamicPopup);
+		
+		    // After popup is added to DOM, add click handlers for toggling lists
+		    setTimeout(() => {
+		        var popupContainer = dynamicPopup.getElement();
+		        if (!popupContainer) return;
+		
+		        var gpToggle = popupContainer.querySelector('.toggleGrantProcesses');
+		        var grToggle = popupContainer.querySelector('.toggleGrantees');
+		        var gpList = popupContainer.querySelector('.grantProcessesList');
+		        var grList = popupContainer.querySelector('.granteesList');
+		
+		        if (!gpToggle || !grToggle || !gpList || !grList) return;
+		
+		        gpToggle.onclick = () => {
+		            if (gpList.style.display === 'none') {
+		                gpList.style.display = 'block';
+		                grList.style.display = 'none';
+		            } else {
+		                gpList.style.display = 'none';
+		            }
+		        };
+		
+		        grToggle.onclick = () => {
+		            if (grList.style.display === 'none') {
+		                grList.style.display = 'block';
+		                gpList.style.display = 'none';
+		            } else {
+		                grList.style.display = 'none';
+		            }
+		        };
+		    }, 10);
+		});
 		// Add custom label at manually specified coordinates if LABEL_CNTR exists
 		if (feature.properties['LABEL_CNTR']) {
 		    const labelParts = feature.properties['LABEL_CNTR'].split(',');
