@@ -280,12 +280,13 @@
 		    const lng = parseFloat(labelParts[1]);
 		
 		    const labelIcon = L.divIcon({
-		        className: 'town-label',
-		        html: `<div>${feature.properties['TOWN']}</div>`,
-		        iconSize: null
-		    });
-		
-		    L.marker([lat, lng], { icon: labelIcon, interactive: false }).addTo(map);
+			    className: 'town-label',
+			    html: `<div>${feature.properties['TOWN']}</div>`,
+			    iconSize: null,
+			    iconAnchor: [feature.properties['TOWN'].length * 3.5, 7] // Adjust for center
+			});
+			
+			L.marker([lat, lng], { icon: labelIcon, interactive: false }).addTo(map);
 		}
 	}
 
